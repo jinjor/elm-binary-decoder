@@ -1,5 +1,5 @@
 elm-binary-decoder
-----
+====
 
 Experimental binary decoder inspired by [elm-tools/parser](http://package.elm-lang.org/packages/elm-tools/parser/latest).
 
