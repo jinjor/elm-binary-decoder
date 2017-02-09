@@ -36,11 +36,10 @@ type Data
 
 midi : Decoder Midi
 midi =
-  header
-    |> andThen (\header ->
-      succeed (Midi header)
-        |= from (header.length + 8) body
-    )
+  given header (\header ->
+    succeed (Midi header)
+      |= from (header.length + 8) body
+  )
 
 
 header : Decoder Header
@@ -69,23 +68,21 @@ dataList =
 
 dataListHelp : List (Int, Data) -> Decoder (List (Int, Data))
 dataListHelp prev =
-  data
-    |> andThen (\d ->
-      case d of
-        (_, End) ->
-          succeed (d :: prev)
+  given data (\d ->
+    case d of
+      (_, End) ->
+        succeed (d :: prev)
 
-        _ ->
-          dataListHelp (d :: prev)
-      )
+      _ ->
+        dataListHelp (d :: prev)
+    )
 
 
 data : Decoder (Int, Data)
 data =
   succeed (,)
     |= deltaTime
-    |= ( uint8
-      |> andThen (\num ->
+    |= given uint8 (\num ->
         if num // 16 == 8 then
           succeed (NoteOff (num % 16))
             |= uint8
@@ -103,7 +100,6 @@ data =
         else
           fail ("unknow data type: " ++ toString num)
       )
-    )
 
 
 deltaTime : Decoder Int
@@ -113,10 +109,9 @@ deltaTime =
 
 deltaTimeHelp : Int -> Decoder Int
 deltaTimeHelp prev =
-  uint8
-    |> andThen (\i ->
-      if Bitwise.and 0x80 i == 0x80 then
-        deltaTimeHelp (Bitwise.shiftLeftBy 7 prev + Bitwise.xor 0x80 i)
-      else
-        succeed (Bitwise.shiftLeftBy 7 prev + i)
-      )
+  given uint8 (\i ->
+    if Bitwise.and 0x80 i == 0x80 then
+      deltaTimeHelp (Bitwise.shiftLeftBy 7 prev + Bitwise.xor 0x80 i)
+    else
+      succeed (Bitwise.shiftLeftBy 7 prev + i)
+  )

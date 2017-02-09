@@ -129,8 +129,8 @@ fail s =
     )
 
 
-infixl 5 |.
 infixl 5 |=
+infixl 5 |.
 
 
 andThen : (a -> Decoder b) -> Decoder a -> Decoder b
@@ -145,6 +145,11 @@ andThen f (Decoder f_) =
           decode context
       )
     )
+
+
+given : Decoder a -> (a -> Decoder b) -> Decoder b
+given =
+  flip andThen
 
 
 map : (a -> b) -> Decoder a -> Decoder b

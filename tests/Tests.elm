@@ -13,6 +13,7 @@ import Char
 import Bitwise
 
 import MidiDecoder
+import WaveDecoder
 
 
 justTry : B.Binary -> B.Decoder a -> (() -> Expectation)
@@ -149,9 +150,9 @@ decodeingBytes =
 
 decodeMidi : List Test
 decodeMidi =
-  [ test "dtime" <| testSucceed1 (Native.TestData.fromList [0x7F]) 0x7F MidiDecoder.deltaTime
-  , test "dtime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x00]) 0x80 MidiDecoder.deltaTime
-  , test "dtime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x01]) 0x81 MidiDecoder.deltaTime
+  [ test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x7F]) 0x7F MidiDecoder.deltaTime
+  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x00]) 0x80 MidiDecoder.deltaTime
+  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x01]) 0x81 MidiDecoder.deltaTime
   , test "midi" <| justTry midi MidiDecoder.midi
   ]
 
