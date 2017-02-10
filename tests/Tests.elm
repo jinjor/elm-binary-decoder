@@ -14,6 +14,7 @@ import Bitwise
 
 import MidiDecoder
 import WaveDecoder
+import Mp3Decoder
 
 
 justTry : B.Binary -> B.Decoder a -> (() -> Expectation)

@@ -3,6 +3,7 @@ module BinaryDecoder exposing (..)
 import Native.BinaryDecoder
 import Json.Encode
 import Char
+import BitDecoder exposing (..)
 
 
 type alias Context =
@@ -129,7 +130,13 @@ fail s =
     )
 
 
+(|+) : Decoder a -> (a -> Decoder b) -> Decoder b
+(|+) =
+  flip andThen
+
+
 infixl 5 |=
+infixl 5 |+
 infixl 5 |.
 
 
@@ -225,4 +232,15 @@ symbol s =
           succeed ()
         else
           fail ("expected " ++ s ++ ", but got " ++ str)
+      )
+
+
+
+bits : Decoder Int -> BitDecoder a -> Decoder a
+bits intDecoder bitDecoder =
+  intDecoder
+    |> andThen (\i ->
+      case BitDecoder.decode bitDecoder i of
+        Ok a -> succeed a
+        Err s -> fail s
       )
