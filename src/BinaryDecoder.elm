@@ -3,13 +3,12 @@ module BinaryDecoder exposing (..)
 import Native.BinaryDecoder
 import Json.Encode
 import Char
-import BitDecoder exposing (..)
+import BitDecoder exposing (BitDecoder)
+import GenericDecoder exposing (GenericDecoder(..), Context, Error, succeed, fail, andThen, map, sequence)
 
 
 type alias Context =
-  { position : Int
-  , source : Binary
-  }
+  GenericDecoder.Context Binary
 
 
 type alias Binary =
@@ -17,9 +16,7 @@ type alias Binary =
 
 
 type alias Error =
-  { position : Int
-  , message : String
-  }
+  GenericDecoder.Error
 
 
 printError : Error -> String
@@ -27,23 +24,14 @@ printError err =
   "decode failed at " ++ toString err.position ++ ":\n\n\t" ++ err.message ++ "\n"
 
 
-type alias Step a =
-  Context -> Result Error (Context, a)
-
-
-type Decoder a
-  = Decoder (Step a)
-
+type alias Decoder a
+  = GenericDecoder Binary a
 
 
 decode : Decoder a -> Binary -> Result Error a
-decode (Decoder f) source =
-  case f (Context 0 source) of
-    Ok (context, a) ->
-      Ok a
+decode =
+  GenericDecoder.decode
 
-    Err e ->
-      Err e
 
 
 -- READ BINARY
@@ -53,7 +41,7 @@ type DecodeIntOption =
   DecodeIntOption
 
 
-nativeDecodeInt : DecodeIntOption -> Step Int
+nativeDecodeInt : DecodeIntOption -> (Context -> Result Error (Context, Int))
 nativeDecodeInt option = \context ->
   case Native.BinaryDecoder.decodeInt option context of
     Err s -> Err (Error context.position s)
@@ -62,7 +50,7 @@ nativeDecodeInt option = \context ->
 
 int : DecodeIntOption -> Decoder Int
 int option =
-  Decoder <| nativeDecodeInt option
+  GenericDecoder <| nativeDecodeInt option
 
 
 uint8 : Decoder Int
@@ -97,130 +85,7 @@ char =
 
 
 
--- PRIMITIVE
-
-
-succeed : a -> Decoder a
-succeed a =
-  Decoder (\context -> Ok (context, a))
-
-
-fail : String -> Decoder a
-fail s =
-  Decoder (\context -> Err <| Error context.position s)
-
-
-
--- COMBINATOR
-
-
-(|=) : Decoder (a -> b) -> Decoder a -> Decoder b
-(|=) transformer decoder =
-  transformer
-    |> andThen (\f ->
-      map f decoder
-    )
-
-
-(|.) : Decoder a -> Decoder x -> Decoder a
-(|.) decoder ignored =
-  decoder
-    |> andThen (\a ->
-      map (\_ -> a) ignored
-    )
-
-
-(|+) : Decoder a -> (a -> Decoder b) -> Decoder b
-(|+) =
-  flip andThen
-
-
-infixl 5 |=
-infixl 5 |+
-infixl 5 |.
-
-
-andThen : (a -> Decoder b) -> Decoder a -> Decoder b
-andThen f (Decoder f_) =
-  Decoder (\context ->
-    f_ context
-      |> Result.andThen (\(context, a) ->
-        let
-          (Decoder decode) =
-            f a
-        in
-          decode context
-      )
-    )
-
-
-given : Decoder a -> (a -> Decoder b) -> Decoder b
-given =
-  flip andThen
-
-
-map : (a -> b) -> Decoder a -> Decoder b
-map f (Decoder f_) =
-  Decoder (\context ->
-    f_ context
-      |> Result.map (\(context, a) ->
-        (context, f a)
-      )
-    )
-
-
-
--- LAZY
-
-
-lazy : (() -> Decoder a) -> Decoder a
-lazy thunk =
-  Decoder (\context ->
-    let
-      (Decoder decode) =
-        thunk ()
-    in
-      decode context
-  )
-
-
-
--- JUMP
-
-
-from : Int -> Decoder a -> Decoder a
-from position (Decoder decode) =
-  Decoder
-    (\context ->
-      decode { context | position = position }
-        |> Result.map (\(c, a) -> ({ c | position = context.position }, a))
-    )
-
-
-goTo : Int -> Decoder ()
-goTo position =
-  Decoder
-    (\context ->
-      Ok ({ context | position = position }, ())
-    )
-
-
-
 -- UTILITY
-
-
-sequence : List (Decoder a) -> Decoder (List a)
-sequence decoders =
-  case decoders of
-    [] ->
-      succeed []
-
-    x :: xs ->
-      x
-        |> andThen (\head ->
-          sequence xs
-            |> map (\tail -> head :: tail)
-        )
 
 
 symbol : String -> Decoder ()
@@ -242,5 +107,5 @@ bits intDecoder bitDecoder =
     |> andThen (\i ->
       case BitDecoder.decode bitDecoder i of
         Ok a -> succeed a
-        Err s -> fail s
+        Err e -> fail e.message
       )

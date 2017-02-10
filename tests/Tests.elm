@@ -5,7 +5,8 @@ import Expect exposing (Expectation)
 import Fuzz exposing (list, int, tuple, string)
 
 import Json.Encode as E
-import BinaryDecoder as B exposing ((|=), (|.))
+import BinaryDecoder as B
+import GenericDecoder exposing ((|=), (|.), succeed, fail, andThen, map, sequence, from, goTo)
 
 import Native.TestData
 
@@ -68,60 +69,60 @@ simpleUints =
 
 primitivesAndCombinators : List Test
 primitivesAndCombinators =
-  [ test "suceed" <| testSucceed 1 <| B.succeed 1
-  , test "fail" <| testFail "oops" <| B.fail "oops"
+  [ test "suceed" <| testSucceed 1 <| succeed 1
+  , test "fail" <| testFail "oops" <| fail "oops"
   , test "|=" <| testSucceed 2 <|
-      B.succeed (\a -> a - 1)
-        |= B.succeed 3
+      succeed (\a -> a - 1)
+        |= succeed 3
   , test "|=" <| testFail "oops" <|
-      B.fail "oops"
-        |= B.succeed 2
+      fail "oops"
+        |= succeed 2
   , test "|=" <| testFail "oh" <|
-      B.fail "oh"
-        |= B.fail "my"
-        |= B.fail "god"
+      fail "oh"
+        |= fail "my"
+        |= fail "god"
   , test "|=" <| testSucceed1 simpleUints (0,1,2,3) <|
-      B.succeed (,,,)
+      succeed (,,,)
         |= B.uint8
         |= B.uint8
         |= B.uint8
         |= B.uint8
   , test "|." <| testSucceed1 simpleUints (1,3) <|
-      B.succeed (,)
+      succeed (,)
         |. B.uint8
         |= B.uint8
         |. B.uint8
         |= B.uint8
   , test "map" <| testSucceed "3" <|
-      B.map toString (B.succeed 3)
+      map toString (succeed 3)
   , test "andThen" <| testSucceed 2 <|
-      B.andThen (\a -> B.succeed (a - 1)) (B.succeed 3)
+      andThen (\a -> succeed (a - 1)) (succeed 3)
   , test "andThen" <| testFail "oops" <|
-      B.andThen (\a -> B.fail "oops") (B.succeed 3)
+      andThen (\a -> fail "oops") (succeed 3)
   , test "sequence" <| testSucceed1 Native.TestData.empty [] <|
-      B.sequence []
+      sequence []
   , test "sequence" <| testSucceed1 simpleUints [0,1,2,3] <|
-      B.sequence (List.repeat 4 B.uint8)
+      sequence (List.repeat 4 B.uint8)
   , test "from" <| testSucceed1 simpleUints (2,3) <|
-      B.from 2 <|
-        B.succeed (,)
+      from 2 <|
+        succeed (,)
           |= B.uint8
           |= B.uint8
   , test "from" <| testSucceed1 simpleUints (0,0,1) <|
-      B.succeed (,,)
-        |= B.from 0 B.uint8
+      succeed (,,)
+        |= from 0 B.uint8
         |= B.uint8
         |= B.uint8
   , test "from" <| testSucceed1 Native.TestData.variousUint (1,2,3,4,5) <|
-      B.succeed (,,,,)
-        |= B.from 0 B.uint8
-        |= B.from 1 B.uint16BE
-        |= B.from 3 B.uint32BE
-        |= B.from 7 B.uint16LE
-        |= B.from 9 B.uint32LE
+      succeed (,,,,)
+        |= from 0 B.uint8
+        |= from 1 B.uint16BE
+        |= from 3 B.uint32BE
+        |= from 7 B.uint16LE
+        |= from 9 B.uint32LE
   , test "goTo" <| testSucceed1 simpleUints (2,3) <|
-      B.succeed (,)
-        |. B.goTo 2
+      succeed (,)
+        |. goTo 2
         |= B.uint8
         |= B.uint8
   ]
@@ -132,21 +133,21 @@ decodeingBytes =
   [ test "uint8" <| testSucceed1 simpleUints 0 <| B.uint8
   , test "uint8" <| testFail1 Native.TestData.empty <| B.uint8
   , test "uint8" <| testSucceed1 simpleUints (0,1,2,3) <|
-      B.succeed (,,,)
+      succeed (,,,)
         |= B.uint8
         |= B.uint8
         |= B.uint8
         |= B.uint8
   , test "various uintFrom" <| testSucceed1 Native.TestData.variousUint (1,2,3,4,5) <|
-      B.succeed (,,,,)
+      succeed (,,,,)
         |= B.uint8
         |= B.uint16BE
         |= B.uint32BE
         |= B.uint16LE
         |= B.uint32LE
   , test "char" <| testSucceed1 (fromString "MThd") "MThd" <|
-      B.succeed String.fromList
-        |= B.sequence (List.repeat 4 B.char)
+      succeed String.fromList
+        |= sequence (List.repeat 4 B.char)
   ]
 
 decodeMidi : List Test

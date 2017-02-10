@@ -1,24 +1,25 @@
-module BitDecoder exposing (BitDecoder, decode, succeed, (||=), (||.), (||+), int, bool)
+module BitDecoder exposing (BitDecoder, decode, int, bool)
 
 
 import Bitwise
+import GenericDecoder exposing (GenericDecoder(..), Context, Error, succeed, fail, andThen, map, sequence)
 
 
 type alias Context =
-  { position : Int
-  , source : Int
-  }
+  GenericDecoder.Context Int
 
 
+type alias Error =
+  GenericDecoder.Error
 
-type BitDecoder a
-  = BitDecoder (Context -> Result String (Context, a))
+
+type alias BitDecoder a
+  = GenericDecoder Int a
 
 
-decode : BitDecoder a -> Int -> Result String a
-decode (BitDecoder f) int =
-  f (Context 0 int)
-    |> Result.map Tuple.second
+decode : BitDecoder a -> Int -> Result Error a
+decode =
+  GenericDecoder.decode
 
 
 
@@ -30,7 +31,7 @@ bitAt n =
   if n < 0 || n >= 8 then
     fail ("out of index: " ++ toString n)
   else
-    BitDecoder (\context ->
+    GenericDecoder (\context ->
       context.source
         |> Bitwise.shiftRightBy (7 - n)
         |> Bitwise.and 1
@@ -38,79 +39,6 @@ bitAt n =
         |> ((,) context)
         |> Ok
       )
-
-
-
--- PRIMITIVE
-
-
-succeed : a -> BitDecoder a
-succeed a =
-  BitDecoder (\context -> Ok (context, a))
-
-
-fail : String -> BitDecoder a
-fail s =
-  BitDecoder (\context -> Err s)
-
-
-
--- COMBINATOR
-
-
-(||=) : BitDecoder (a -> b) -> BitDecoder a -> BitDecoder b
-(||=) transformer decoder =
-  transformer
-    |> andThen (\f ->
-      map f decoder
-    )
-
-
-(||.) : BitDecoder a -> BitDecoder x -> BitDecoder a
-(||.) decoder ignored =
-  decoder
-    |> andThen (\a ->
-      map (\_ -> a) ignored
-    )
-
-
-(||+) : BitDecoder a -> (a -> BitDecoder b) -> BitDecoder b
-(||+) =
-  flip andThen
-
-
-infixl 5 ||=
-infixl 5 ||+
-infixl 5 ||.
-
-
-andThen : (a -> BitDecoder b) -> BitDecoder a -> BitDecoder b
-andThen f (BitDecoder f_) =
-  BitDecoder (\context ->
-    f_ context
-      |> Result.andThen (\(context_, a) ->
-        let
-          (BitDecoder decode) =
-            f a
-        in
-          decode context_
-      )
-    )
-
-
-given : BitDecoder a -> (a -> BitDecoder b) -> BitDecoder b
-given =
-  flip andThen
-
-
-map : (a -> b) -> BitDecoder a -> BitDecoder b
-map f (BitDecoder f_) =
-  BitDecoder (\context ->
-    f_ context
-      |> Result.map (\(context, a) ->
-        (context, f a)
-      )
-    )
 
 
 
@@ -137,9 +65,13 @@ int length =
   if length < 0 then
     fail ("invalid length " ++ toString length)
   else
-    BitDecoder (\context ->
-      intHelp 0 context.position length
-        |> Result.map ((,) { context | position = context.position + length})
+    GenericDecoder (\context ->
+      case intHelp 0 context.position length of
+        Ok i ->
+          Ok ({ context | position = context.position + length }, i)
+
+        Err s ->
+          Err (Error context.position s)
     )
 
 

@@ -2,6 +2,7 @@ module Mp3Decoder exposing (..)
 
 import BinaryDecoder exposing (..)
 import BitDecoder exposing (..)
+import GenericDecoder exposing (succeed, (|=), (|.), (|+), map, given)
 
 import Char
 import Bitwise
@@ -33,20 +34,19 @@ type alias Data =
   }
 
 
-
 tagId3v2Header : Decoder TagId3v2Header
 tagId3v2Header =
-  BinaryDecoder.succeed TagId3v2Header
+  succeed TagId3v2Header
     |. symbol "ID3"
     |= uint8
     |= uint8
     |+ (\f ->
         bits uint8 <|
-          BitDecoder.succeed f
-            ||= bool
-            ||= bool
-            ||= bool
-            ||= bool
+          succeed f
+            |= bool
+            |= bool
+            |= bool
+            |= bool
         )
     |= uint32BE
 
