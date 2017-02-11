@@ -178,6 +178,14 @@ decodeingBits =
   , test "zeros" <| testSucceed1 (0 |> Bitwise.shiftLeftBy 24) () <| Bit.zeros 8
   , test "ones" <| testFail1 (1 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
   , test "ones" <| testFail1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
+  , test "choose" <| testSucceed1 (0 |> Bitwise.shiftLeftBy 30) 0 <| Bit.choose 2 [(0,0),(1,1),(2,2),(3,3)]
+  , test "choose" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 2 [(1,1),(2,2),(3,3)]
+  , test "choose" <| testSucceed1 (2 |> Bitwise.shiftLeftBy 30) 2 <| Bit.choose 2 [(2,2),(3,3)]
+  , test "choose" <| testSucceed1 (3 |> Bitwise.shiftLeftBy 30) 3 <| Bit.choose 2 [(3,3)]
+  , test "choose" <| testSucceed1 (3 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 1 [(1,1)]
+  , test "choose" <| testFail1 (3 |> Bitwise.shiftLeftBy 30) <| Bit.choose 1 [(3,3)]
+  , test "choose" <| testFail1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
+  , test "choose" <| testFail1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
   ]
 
 

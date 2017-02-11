@@ -10,6 +10,7 @@ module BinaryDecoder.Byte exposing
 
 
 import Char
+import Bitwise
 import Json.Encode
 import BinaryDecoder exposing (..)
 import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
@@ -143,9 +144,9 @@ bits length bitDecoder =
   let
     intDecoder =
       case length of
-        1 -> uint8
-        2 -> uint16LE
-        4 -> uint32LE
+        1 -> map (Bitwise.shiftLeftBy 24) uint8
+        2 -> map (Bitwise.shiftLeftBy 16) uint16BE
+        4 -> uint32BE
         _ -> fail ("invalid byte length for reading int: " ++ toString length)
   in
     intDecoder

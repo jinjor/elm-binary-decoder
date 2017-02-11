@@ -30,25 +30,6 @@ decode =
 
 
 
--- READ BITS
-
-
-bitAt : Int -> BitDecoder Bool
-bitAt n =
-  if n < 0 || n >= 8 then
-    fail ("out of index: " ++ toString n)
-  else
-    GenericDecoder (\context ->
-      context.source
-        |> Bitwise.shiftRightBy (7 - n)
-        |> Bitwise.and 1
-        |> (\a -> a > 0)
-        |> ((,) context)
-        |> Ok
-      )
-
-
-
 -- UTILITY
 
 
@@ -70,36 +51,13 @@ int length =
 
 intHelp : Int -> Int -> Int -> Result String Int
 intHelp from length source =
-  if from < 0 then
-    Err ("index out of bounds: " ++ toString from)
-  else if from < 8 then
-    Ok <| intHelpHelp from length source
+  if from < 0 || from + length >= 32 then
+    Err ("index out of bounds: " ++ toString length ++ " bits from " ++ toString from)
   else
-    Ok <| intHelpHelp (from - 8) length (source |> Bitwise.shiftLeftBy 8)
-
-
-intHelpHelp : Int -> Int -> Int -> Int
-intHelpHelp from length source =
-  if length == 0 then
-    0
-  else
-    let
-      to =
-        min 8 (from + length)
-
-      len =
-        to - from
-
-      rest =
-        length - len
-
-      this =
-        source
-          |> Bitwise.shiftRightBy (32 - to)
-          |> Bitwise.and (2 ^ len - 1)
-    in
-      intHelpHelp 0 rest (source |> Bitwise.shiftLeftBy 8)
-        + (this |> Bitwise.shiftLeftBy rest)
+    source
+      |> Bitwise.shiftRightBy (32 - (from + length))
+      |> Bitwise.and (2 ^ length - 1)
+      |> Ok
 
 
 {-|-}
@@ -133,7 +91,7 @@ choose length list =
   given (int length) (\i ->
     list
       |> Dict.fromList
-      |> Dict.get 1
+      |> Dict.get i
       |> Maybe.map succeed
       |> Maybe.withDefault (fail ("no option is given for index: " ++ toString i))
   )
