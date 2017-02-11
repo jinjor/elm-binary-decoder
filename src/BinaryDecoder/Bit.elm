@@ -59,7 +59,7 @@ int length =
     fail ("invalid length " ++ toString length)
   else
     GenericDecoder (\context ->
-      case intHelp 0 context.position length of
+      case intHelp context.position length context.source of
         Ok i ->
           Ok ({ context | position = context.position + length }, i)
 
@@ -69,8 +69,37 @@ int length =
 
 
 intHelp : Int -> Int -> Int -> Result String Int
-intHelp prev from length =
-  Debug.crash "not implemented."
+intHelp from length source =
+  if from < 0 then
+    Err ("index out of bounds: " ++ toString from)
+  else if from < 8 then
+    Ok <| intHelpHelp from length source
+  else
+    Ok <| intHelpHelp (from - 8) length (source |> Bitwise.shiftLeftBy 8)
+
+
+intHelpHelp : Int -> Int -> Int -> Int
+intHelpHelp from length source =
+  if length == 0 then
+    0
+  else
+    let
+      to =
+        min 8 (from + length)
+
+      len =
+        to - from
+
+      rest =
+        length - len
+
+      this =
+        source
+          |> Bitwise.shiftRightBy (32 - to)
+          |> Bitwise.and (2 ^ len - 1)
+    in
+      intHelpHelp 0 rest (source |> Bitwise.shiftLeftBy 8)
+        + (this |> Bitwise.shiftLeftBy rest)
 
 
 {-|-}

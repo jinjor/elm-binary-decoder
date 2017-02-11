@@ -144,8 +144,8 @@ bits length bitDecoder =
     intDecoder =
       case length of
         1 -> uint8
-        2 -> uint16BE
-        4 -> uint32BE
+        2 -> uint16LE
+        4 -> uint32LE
         _ -> fail ("invalid byte length for reading int: " ++ toString length)
   in
     intDecoder

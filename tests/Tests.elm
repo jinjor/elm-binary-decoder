@@ -5,11 +5,14 @@ import Expect exposing (Expectation)
 
 import Json.Encode as E
 import BinaryDecoder.Byte as B
+import BinaryDecoder.Bit as Bit
 import BinaryDecoder exposing (..)
+import BinaryDecoder.GenericDecoder as G exposing (GenericDecoder)
 
 import Native.TestData
 
 import Char
+import Bitwise
 
 import MidiDecoder
 import WaveDecoder
@@ -30,9 +33,9 @@ justTry binary decoder = \() ->
       Expect.fail (printError e)
 
 
-testSucceed1 : B.Binary -> a -> B.Decoder a -> (() -> Expectation)
-testSucceed1 binary a decoder = \() ->
-  Expect.equal (Ok a) (B.decode decoder binary)
+testSucceed1 : s -> a -> GenericDecoder s a -> (() -> Expectation)
+testSucceed1 source a decoder = \() ->
+  Expect.equal (Ok a) (G.decode decoder source)
 
 
 testSucceed : a -> B.Decoder a -> (() -> Expectation)
@@ -40,9 +43,9 @@ testSucceed a decoder =
   testSucceed1 Native.TestData.empty a decoder
 
 
-testFail1 : B.Binary -> B.Decoder a -> (() -> Expectation)
-testFail1 binary decoder = \() ->
-  case B.decode decoder binary of
+testFail1 : s -> GenericDecoder s a -> (() -> Expectation)
+testFail1 source decoder = \() ->
+  case G.decode decoder source of
     Ok a ->
       Expect.fail ("Unexpectedly succeed: " ++ toString a)
 
@@ -60,18 +63,19 @@ testFail err decoder = \() ->
       Expect.equal e.message err
 
 
-simpleUints : B.Binary
-simpleUints =
-  Native.TestData.fromList [0,1,2,3]
+uints : List Int -> B.Binary
+uints list =
+  Native.TestData.fromList list
 
 
 primitivesAndCombinators : List Test
 primitivesAndCombinators =
   [ test "suceed" <| testSucceed 1 <| succeed 1
   , test "fail" <| testFail "oops" <| fail "oops"
-  , test "|=" <| testSucceed 2 <|
-      succeed (\a -> a - 1)
-        |= succeed 3
+  , test "|=" <| testSucceed (1,2) <|
+      succeed (,)
+        |= succeed 1
+        |= succeed 2
   , test "|=" <| testFail "oops" <|
       fail "oops"
         |= succeed 2
@@ -79,18 +83,17 @@ primitivesAndCombinators =
       fail "oh"
         |= fail "my"
         |= fail "god"
-  , test "|=" <| testSucceed1 simpleUints (0,1,2,3) <|
-      succeed (,,,)
-        |= B.uint8
-        |= B.uint8
-        |= B.uint8
-        |= B.uint8
-  , test "|." <| testSucceed1 simpleUints (1,3) <|
+  , test "|." <| testSucceed (2,4) <|
       succeed (,)
-        |. B.uint8
-        |= B.uint8
-        |. B.uint8
-        |= B.uint8
+        |. succeed 1
+        |= succeed 2
+        |. succeed 3
+        |= succeed 4
+  , test "|." <| testFail "oh" <|
+      succeed ()
+        |. fail "oh"
+        |. fail "my"
+        |. fail "god"
   , test "map" <| testSucceed "3" <|
       map toString (succeed 3)
   , test "andThen" <| testSucceed 2 <|
@@ -99,14 +102,14 @@ primitivesAndCombinators =
       andThen (\a -> fail "oops") (succeed 3)
   , test "sequence" <| testSucceed1 Native.TestData.empty [] <|
       sequence []
-  , test "sequence" <| testSucceed1 simpleUints [0,1,2,3] <|
+  , test "sequence" <| testSucceed1 (uints [0,1,2,3]) [0,1,2,3] <|
       sequence (List.repeat 4 B.uint8)
-  , test "from" <| testSucceed1 simpleUints (2,3) <|
+  , test "from" <| testSucceed1 (uints [0,1,2,3]) (2,3) <|
       from 2 <|
         succeed (,)
           |= B.uint8
           |= B.uint8
-  , test "from" <| testSucceed1 simpleUints (0,0,1) <|
+  , test "from" <| testSucceed1 (uints [0,1,2,3]) (0,0,1) <|
       succeed (,,)
         |= from 0 B.uint8
         |= B.uint8
@@ -118,7 +121,7 @@ primitivesAndCombinators =
         |= from 3 B.uint32BE
         |= from 7 B.uint16LE
         |= from 9 B.uint32LE
-  , test "goTo" <| testSucceed1 simpleUints (2,3) <|
+  , test "goTo" <| testSucceed1 (uints [0,1,2,3]) (2,3) <|
       succeed (,)
         |. goTo 2
         |= B.uint8
@@ -128,25 +131,55 @@ primitivesAndCombinators =
 
 decodeingBytes : List Test
 decodeingBytes =
-  [ test "uint8" <| testSucceed1 simpleUints 0 <| B.uint8
-  , test "uint8" <| testFail1 Native.TestData.empty <| B.uint8
-  , test "uint8" <| testSucceed1 simpleUints (0,1,2,3) <|
-      succeed (,,,)
+  [ test "uint8" <| testSucceed1 (uints [0]) 0 <| B.uint8
+  , test "uint8" <| testFail1 (uints []) <| B.uint8
+  , test "uint8" <| testSucceed1 (uints [0,1]) (0,1) <|
+      succeed (,)
         |= B.uint8
         |= B.uint8
-        |= B.uint8
-        |= B.uint8
-  , test "various uintFrom" <| testSucceed1 Native.TestData.variousUint (1,2,3,4,5) <|
+  , test "various uint" <| testSucceed1 Native.TestData.variousUint (1,2,3,4,5) <|
       succeed (,,,,)
         |= B.uint8
         |= B.uint16BE
         |= B.uint32BE
         |= B.uint16LE
         |= B.uint32LE
-  , test "char" <| testSucceed1 (fromString "MThd") "MThd" <|
+  , test "various int" <| testSucceed1 Native.TestData.variousUint (-1,-2,-3,-4,-5) <|
+      succeed (,,,,)
+        |. goTo 13
+        |= B.int8
+        |= B.int16BE
+        |= B.int32BE
+        |= B.int16LE
+        |= B.int32LE
+  , test "char" <| testSucceed1 (fromString "aA1 ") "aA1 " <|
       succeed String.fromList
         |= sequence (List.repeat 4 B.char)
+  , test "symbol" <| testSucceed1 (fromString "aA1 ") () <|
+      B.symbol "aA1 "
   ]
+
+
+decodeingBits : List Test
+decodeingBits =
+  [ test "int" <| testSucceed1 0 [0,0,0,0,0,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 24) [0,0,0,0,0,0,0,1] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceed1 (255 |> Bitwise.shiftLeftBy 24) [1,1,1,1,1,1,1,1] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) [0,0,0,0,1,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 0 <| Bit.int 4
+  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 1 <| Bit.int 5
+  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 2 <| Bit.int 6
+  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 4 <| Bit.int 7
+  , test "bool" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 31) True <| Bit.bool
+  , test "bool" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 30) False <| Bit.bool
+  , test "ones" <| testSucceed1 (255 |> Bitwise.shiftLeftBy 24) () <| Bit.ones 8
+  , test "ones" <| testFail1 (254 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
+  , test "ones" <| testFail1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
+  , test "zeros" <| testSucceed1 (0 |> Bitwise.shiftLeftBy 24) () <| Bit.zeros 8
+  , test "ones" <| testFail1 (1 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
+  , test "ones" <| testFail1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
+  ]
+
 
 decodeMidi : List Test
 decodeMidi =
@@ -184,5 +217,6 @@ all =
   describe "Decoder"
     [ describe "primitivs and combinators" primitivesAndCombinators
     , describe "decodeing bytes" decodeingBytes
+    , describe "decodeing bits" decodeingBits
     , describe "decode midi" decodeMidi
     ]
