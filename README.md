@@ -1,6 +1,8 @@
 elm-binary-decoder
 ====
 
+[![Build Status](https://travis-ci.org/jinjor/elm-binary-decoder.svg)](https://travis-ci.org/jinjor/elm-binary-decoder)
+
 Experimental binary decoder inspired by [elm-tools/parser](http://package.elm-lang.org/packages/elm-tools/parser/latest).
 
 
