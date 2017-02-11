@@ -1,16 +1,19 @@
-module BitDecoder exposing (BitDecoder, decode, int, bool)
+module BinaryDecoder.Bit exposing
+  ( BitDecoder
+  , decode
+  , int, bool
+  , zeros, ones, choose
+  )
 
 
 import Bitwise
-import GenericDecoder exposing (GenericDecoder(..), Context, Error, succeed, fail, andThen, map, sequence)
+import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
+import BinaryDecoder exposing (..)
+import Dict
 
 
 type alias Context =
   GenericDecoder.Context Int
-
-
-type alias Error =
-  GenericDecoder.Error
 
 
 type alias BitDecoder a
@@ -45,21 +48,6 @@ bitAt n =
 -- UTILITY
 
 
-match : List Int -> BitDecoder ()
-match ints =
-  Debug.crash "not implemented."
-
-
-zeros : Int -> BitDecoder ()
-zeros length =
-  match (List.repeat length 0)
-
-
-ones : Int -> BitDecoder ()
-ones length =
-  match (List.repeat length 1)
-
-
 int : Int -> BitDecoder Int
 int length =
   if length < 0 then
@@ -83,3 +71,24 @@ intHelp prev from length =
 bool : BitDecoder Bool
 bool =
   map (\i -> i > 0) (int 1)
+
+
+zeros : Int -> BitDecoder ()
+zeros length =
+  match (List.repeat length 0)
+
+
+ones : Int -> BitDecoder ()
+ones length =
+  match (List.repeat length 1)
+
+
+choose : Int -> List (Int, a) -> BitDecoder a
+choose length list =
+  given (int length) (\i ->
+    list
+      |> Dict.fromList
+      |> Dict.get 1
+      |> Maybe.map succeed
+      |> Maybe.withDefault (fail ("no option is given for index: " ++ toString i))
+  )

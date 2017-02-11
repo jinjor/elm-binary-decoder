@@ -1,10 +1,8 @@
 module WaveDecoder exposing (..)
 
+import BinaryDecoder.Byte exposing (..)
 import BinaryDecoder exposing (..)
-import GenericDecoder exposing (succeed, fail, (|=), (|.), (|+), map, given)
 
-import Char
-import Bitwise
 
 
 type alias Wave =

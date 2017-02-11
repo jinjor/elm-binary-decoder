@@ -2,16 +2,14 @@ module Tests exposing (..)
 
 import Test exposing (..)
 import Expect exposing (Expectation)
-import Fuzz exposing (list, int, tuple, string)
 
 import Json.Encode as E
-import BinaryDecoder as B
-import GenericDecoder exposing ((|=), (|.), succeed, fail, andThen, map, sequence, from, goTo)
+import BinaryDecoder.Byte as B
+import BinaryDecoder exposing (..)
 
 import Native.TestData
 
 import Char
-import Bitwise
 
 import MidiDecoder
 import WaveDecoder
@@ -29,7 +27,7 @@ justTry binary decoder = \() ->
         Expect.pass
 
     Err e ->
-      Expect.fail (B.printError e)
+      Expect.fail (printError e)
 
 
 testSucceed1 : B.Binary -> a -> B.Decoder a -> (() -> Expectation)

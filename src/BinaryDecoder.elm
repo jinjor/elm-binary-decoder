@@ -1,111 +1,149 @@
-module BinaryDecoder exposing (..)
-
-import Native.BinaryDecoder
-import Json.Encode
-import Char
-import BitDecoder exposing (BitDecoder)
-import GenericDecoder exposing (GenericDecoder(..), Context, Error, succeed, fail, andThen, map, sequence)
-
-
-type alias Context =
-  GenericDecoder.Context Binary
+module BinaryDecoder exposing
+  ( succeed, fail
+  , (|=), (|.), (|+)
+  , andThen, given, map, sequence
+  , from, goTo
+  , lazy
+  , match, printError
+  )
 
 
-type alias Binary =
-  Json.Encode.Value
-
-
-type alias Error =
-  GenericDecoder.Error
-
-
-printError : Error -> String
-printError err =
-  "decode failed at " ++ toString err.position ++ ":\n\n\t" ++ err.message ++ "\n"
-
-
-type alias Decoder a
-  = GenericDecoder Binary a
-
-
-decode : Decoder a -> Binary -> Result Error a
-decode =
-  GenericDecoder.decode
+import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 
 
 
--- READ BINARY
+-- PRIMITIVE
 
 
-type DecodeIntOption =
-  DecodeIntOption
+succeed : a -> GenericDecoder s a
+succeed a =
+  GenericDecoder (\context -> Ok (context, a))
 
 
-nativeDecodeInt : DecodeIntOption -> (Context -> Result Error (Context, Int))
-nativeDecodeInt option = \context ->
-  case Native.BinaryDecoder.decodeInt option context of
-    Err s -> Err (Error context.position s)
-    Ok i -> Ok i
+fail : String -> GenericDecoder s a
+fail s =
+  GenericDecoder (\context -> Err (Error context.position s))
 
 
-int : DecodeIntOption -> Decoder Int
-int option =
-  GenericDecoder <| nativeDecodeInt option
+
+-- COMBINATOR
 
 
-uint8 : Decoder Int
-uint8 =
-  int <| Native.BinaryDecoder.uint8
+(|=) : GenericDecoder s (a -> b) -> GenericDecoder s a -> GenericDecoder s b
+(|=) transformer decoder =
+  transformer
+    |> andThen (\f ->
+      map f decoder
+    )
 
 
-uint16BE : Decoder Int
-uint16BE =
-  int <| Native.BinaryDecoder.uint16 False
+(|.) : GenericDecoder s a -> GenericDecoder s x -> GenericDecoder s a
+(|.) decoder ignored =
+  decoder
+    |> andThen (\a ->
+      map (\_ -> a) ignored
+    )
 
 
-uint16LE : Decoder Int
-uint16LE =
-  int <| Native.BinaryDecoder.uint16 True
+(|+) : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
+(|+) =
+  flip andThen
 
 
-uint32BE : Decoder Int
-uint32BE =
-  int <| Native.BinaryDecoder.uint32 False
+infixl 5 |=
+infixl 5 |+
+infixl 5 |.
 
 
-uint32LE : Decoder Int
-uint32LE =
-  int <| Native.BinaryDecoder.uint32 True
+andThen : (a -> GenericDecoder s b) -> GenericDecoder s a -> GenericDecoder s b
+andThen f (GenericDecoder f_) =
+  GenericDecoder (\context ->
+    f_ context
+      |> Result.andThen (\(context_, a) ->
+        let
+          (GenericDecoder decode) =
+            f a
+        in
+          decode context_
+      )
+    )
 
 
-char : Decoder Char
-char =
-  uint8
-    |> map Char.fromCode
+given : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
+given =
+  flip andThen
+
+
+map : (a -> b) -> GenericDecoder s a -> GenericDecoder s b
+map f (GenericDecoder f_) =
+  GenericDecoder (\context ->
+    f_ context
+      |> Result.map (\(context, a) ->
+        (context, f a)
+      )
+    )
+
+
+sequence : List (GenericDecoder s a) -> GenericDecoder s (List a)
+sequence decoders =
+  case decoders of
+    [] ->
+      succeed []
+
+    x :: xs ->
+      x
+        |> andThen (\head ->
+          sequence xs
+            |> map (\tail -> head :: tail)
+        )
+
+
+
+-- JUMP
+
+
+from : Int -> GenericDecoder s a -> GenericDecoder s a
+from position (GenericDecoder decode) =
+  GenericDecoder
+    (\context ->
+      decode { context | position = position }
+        |> Result.map (\(c, a) -> ({ c | position = context.position }, a))
+    )
+
+
+goTo : Int -> GenericDecoder s ()
+goTo position =
+  GenericDecoder
+    (\context ->
+      Ok ({ context | position = position }, ())
+    )
+
+
+
+-- LAZY
+
+
+lazy : (() -> GenericDecoder s a) -> GenericDecoder s a
+lazy thunk =
+  GenericDecoder (\context ->
+    let
+      (GenericDecoder decode) =
+        thunk ()
+    in
+      decode context
+  )
 
 
 
 -- UTILITY
 
 
-symbol : String -> Decoder ()
-symbol s =
-  sequence (List.repeat (String.length s) char)
-    |> map String.fromList
-    |> andThen (\str ->
-        if str == s then
-          succeed ()
-        else
-          fail ("expected " ++ s ++ ", but got " ++ str)
-      )
+match : List Int -> GenericDecoder s ()
+match ints =
+  Debug.crash "not implemented."
 
 
 
-bits : Decoder Int -> BitDecoder a -> Decoder a
-bits intDecoder bitDecoder =
-  intDecoder
-    |> andThen (\i ->
-      case BitDecoder.decode bitDecoder i of
-        Ok a -> succeed a
-        Err e -> fail e.message
-      )
+printError : Error -> String
+printError err =
+  "decode failed at " ++ toString err.position ++ ":\n\n\t" ++ err.message ++ "\n"

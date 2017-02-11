@@ -1,10 +1,9 @@
 module MidiDecoder exposing (..)
 
-import BinaryDecoder exposing (..)
-import GenericDecoder exposing (succeed, fail, (|=), (|.), (|+), map, given, from)
 
-import Char
 import Bitwise
+import BinaryDecoder.Byte exposing (..)
+import BinaryDecoder exposing (..)
 
 
 type alias Midi =
