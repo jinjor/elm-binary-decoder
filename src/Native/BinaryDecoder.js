@@ -41,11 +41,35 @@ function uint32(littleEndian) {
 	};
 }
 
+var int8 = {
+	method: 'getInt8',
+	length: 1
+};
+
+function int16(littleEndian) {
+	return {
+		method: 'getInt16',
+		length: 2,
+		littleEndian: littleEndian
+	};
+}
+
+function int32(littleEndian) {
+	return {
+		method: 'getInt32',
+		length: 4,
+		littleEndian: littleEndian
+	};
+}
+
 return {
 	decodeInt: F2(decodeInt),
 	uint8: uint8,
 	uint16: uint16,
-	uint32: uint32
+	uint32: uint32,
+	int8: int8,
+	int16: int16,
+	int32: int32
 }
 
 }();

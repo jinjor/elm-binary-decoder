@@ -1,8 +1,8 @@
 module WaveDecoder exposing (..)
 
-import BinaryDecoder.Byte exposing (..)
-import BinaryDecoder exposing (..)
 
+import BinaryDecoder exposing (..)
+import BinaryDecoder.Byte exposing (..)
 
 
 type alias Wave =

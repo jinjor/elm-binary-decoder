@@ -6,6 +6,8 @@ module BinaryDecoder.Bit exposing
   )
 
 
+{-|-}
+
 import Bitwise
 import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 import BinaryDecoder exposing (..)
@@ -16,10 +18,12 @@ type alias Context =
   GenericDecoder.Context Int
 
 
+{-|-}
 type alias BitDecoder a
   = GenericDecoder Int a
 
 
+{-|-}
 decode : BitDecoder a -> Int -> Result Error a
 decode =
   GenericDecoder.decode
@@ -48,6 +52,7 @@ bitAt n =
 -- UTILITY
 
 
+{-|-}
 int : Int -> BitDecoder Int
 int length =
   if length < 0 then
@@ -68,21 +73,32 @@ intHelp prev from length =
   Debug.crash "not implemented."
 
 
+{-|-}
 bool : BitDecoder Bool
 bool =
   map (\i -> i > 0) (int 1)
 
 
+
+matchInts : List Int -> BitDecoder ()
+matchInts ints =
+  match ints <|
+    sequence ( List.map (always (int 1)) ints )
+
+
+{-|-}
 zeros : Int -> BitDecoder ()
 zeros length =
-  match (List.repeat length 0)
+  matchInts (List.repeat length 0)
 
 
+{-|-}
 ones : Int -> BitDecoder ()
 ones length =
-  match (List.repeat length 1)
+  matchInts (List.repeat length 1)
 
 
+{-|-}
 choose : Int -> List (Int, a) -> BitDecoder a
 choose length list =
   given (int length) (\i ->

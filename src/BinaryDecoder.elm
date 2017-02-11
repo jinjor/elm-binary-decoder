@@ -8,6 +8,9 @@ module BinaryDecoder exposing
   )
 
 
+{-|-}
+
+
 import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 
 
@@ -15,11 +18,13 @@ import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 -- PRIMITIVE
 
 
+{-|-}
 succeed : a -> GenericDecoder s a
 succeed a =
   GenericDecoder (\context -> Ok (context, a))
 
 
+{-|-}
 fail : String -> GenericDecoder s a
 fail s =
   GenericDecoder (\context -> Err (Error context.position s))
@@ -29,6 +34,7 @@ fail s =
 -- COMBINATOR
 
 
+{-|-}
 (|=) : GenericDecoder s (a -> b) -> GenericDecoder s a -> GenericDecoder s b
 (|=) transformer decoder =
   transformer
@@ -37,6 +43,7 @@ fail s =
     )
 
 
+{-|-}
 (|.) : GenericDecoder s a -> GenericDecoder s x -> GenericDecoder s a
 (|.) decoder ignored =
   decoder
@@ -45,6 +52,7 @@ fail s =
     )
 
 
+{-|-}
 (|+) : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
 (|+) =
   flip andThen
@@ -55,6 +63,7 @@ infixl 5 |+
 infixl 5 |.
 
 
+{-|-}
 andThen : (a -> GenericDecoder s b) -> GenericDecoder s a -> GenericDecoder s b
 andThen f (GenericDecoder f_) =
   GenericDecoder (\context ->
@@ -69,11 +78,13 @@ andThen f (GenericDecoder f_) =
     )
 
 
+{-|-}
 given : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
 given =
   flip andThen
 
 
+{-|-}
 map : (a -> b) -> GenericDecoder s a -> GenericDecoder s b
 map f (GenericDecoder f_) =
   GenericDecoder (\context ->
@@ -84,6 +95,7 @@ map f (GenericDecoder f_) =
     )
 
 
+{-|-}
 sequence : List (GenericDecoder s a) -> GenericDecoder s (List a)
 sequence decoders =
   case decoders of
@@ -102,6 +114,7 @@ sequence decoders =
 -- JUMP
 
 
+{-|-}
 from : Int -> GenericDecoder s a -> GenericDecoder s a
 from position (GenericDecoder decode) =
   GenericDecoder
@@ -111,6 +124,7 @@ from position (GenericDecoder decode) =
     )
 
 
+{-|-}
 goTo : Int -> GenericDecoder s ()
 goTo position =
   GenericDecoder
@@ -123,6 +137,7 @@ goTo position =
 -- LAZY
 
 
+{-|-}
 lazy : (() -> GenericDecoder s a) -> GenericDecoder s a
 lazy thunk =
   GenericDecoder (\context ->
@@ -138,12 +153,18 @@ lazy thunk =
 -- UTILITY
 
 
-match : List Int -> GenericDecoder s ()
-match ints =
-  Debug.crash "not implemented."
+{-|-}
+match : a -> GenericDecoder s a -> GenericDecoder s ()
+match expected decoder =
+  decoder
+    |> andThen (\a ->
+        if a == expected then
+          succeed ()
+        else
+          fail ("expected " ++ toString expected ++ ", but got " ++ toString a)
+      )
 
-
-
+{-|-}
 printError : Error -> String
 printError err =
   "decode failed at " ++ toString err.position ++ ":\n\n\t" ++ err.message ++ "\n"

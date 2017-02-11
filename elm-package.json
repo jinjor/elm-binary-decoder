@@ -4,9 +4,13 @@
     "repository": "https://github.com/jinjor/binary-decoder.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+        "src"
     ],
-    "exposed-modules": [],
+    "exposed-modules": [
+      "BinaryDecoder",
+      "BinaryDecoder.Byte",
+      "BinaryDecoder.Bit"
+    ],
     "native-modules": true,
     "dependencies": {
         "elm-lang/core": "5.1.1 <= v < 6.0.0",

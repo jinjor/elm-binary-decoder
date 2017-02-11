@@ -1,8 +1,9 @@
 module Mp3Decoder exposing (..)
 
+
+import BinaryDecoder exposing (..)
 import BinaryDecoder.Byte exposing (..)
 import BinaryDecoder.Bit exposing (..)
-import BinaryDecoder exposing (..)
 
 
 type alias Mp3 =
