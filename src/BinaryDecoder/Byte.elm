@@ -1,5 +1,5 @@
 module BinaryDecoder.Byte exposing
-  ( Binary, Decoder, decode
+  ( ArrayBuffer, Decoder, decode
   , uint8, uint16BE, uint16LE, uint32BE, uint32LE
   , int8, int16BE, int16LE, int32BE, int32LE
   , char, symbol, bits
@@ -19,27 +19,36 @@ import Native.BinaryDecoder
 
 
 {-|-}
-type alias Binary =
-  Json.Encode.Value
+type ArrayBuffer =
+  ArrayBuffer
+
+
+type DataView =
+  DataView
 
 
 type alias Context =
-  GenericDecoder.Context Binary
+  GenericDecoder.Context DataView
 
 
 {-|-}
 type alias Decoder a
-  = GenericDecoder Binary a
+  = GenericDecoder DataView a
 
 
 {-|-}
-decode : Decoder a -> Binary -> Result Error a
-decode =
-  GenericDecoder.decode
+decode : Decoder a -> ArrayBuffer -> Result Error a
+decode decoder arrayBuffer =
+  GenericDecoder.decode decoder (toDataView arrayBuffer)
 
 
 
 -- READ BINARY
+
+
+toDataView : ArrayBuffer -> DataView
+toDataView =
+  Native.BinaryDecoder.toDataView
 
 
 type DecodeIntOption =

@@ -1,5 +1,9 @@
 var _jinjor$binary_decoder$Native_BinaryDecoder = function() {
 
+function toDataView(buffer) {
+  return new DataView(buffer);
+}
+
 function decodeInt(option, context)
 {
 	var offset = context.position;
@@ -63,6 +67,7 @@ function int32(littleEndian) {
 }
 
 return {
+	toDataView: toDataView,
 	decodeInt: F2(decodeInt),
 	uint8: uint8,
 	uint16: uint16,

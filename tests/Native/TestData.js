@@ -7,13 +7,7 @@ function fromList(uints) {
   for(var i = 0; i < uints.length; i++) {
     dataView.setUint8(i, uints[i]);
   }
-  return dataView;
-}
-
-function empty() {
-  var buffer = new ArrayBuffer(0);
-	var dataView = new DataView(buffer);
-  return dataView;
+  return buffer;
 }
 
 function variousUint()
@@ -30,7 +24,7 @@ function variousUint()
   dataView.setInt32(16, -3);
   dataView.setInt16(20, -4, true);
   dataView.setInt32(22, -5, true);
-  return dataView;
+  return buffer;
 }
 
 function log(label, a) {
@@ -39,7 +33,6 @@ function log(label, a) {
 }
 
 return {
-	empty: empty(),
   fromList: fromList,
   variousUint: variousUint()
 }

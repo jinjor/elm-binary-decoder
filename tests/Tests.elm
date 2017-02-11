@@ -3,8 +3,7 @@ module Tests exposing (..)
 import Test exposing (..)
 import Expect exposing (Expectation)
 
-import Json.Encode as E
-import BinaryDecoder.Byte as B
+import BinaryDecoder.Byte as B exposing (ArrayBuffer)
 import BinaryDecoder.Bit as Bit
 import BinaryDecoder exposing (..)
 import BinaryDecoder.GenericDecoder as G exposing (GenericDecoder)
@@ -19,7 +18,7 @@ import WaveDecoder
 import Mp3Decoder
 
 
-justTry : B.Binary -> B.Decoder a -> (() -> Expectation)
+justTry : ArrayBuffer -> B.Decoder a -> (() -> Expectation)
 justTry binary decoder = \() ->
   case B.decode decoder binary of
     Ok a ->
@@ -33,19 +32,34 @@ justTry binary decoder = \() ->
       Expect.fail (printError e)
 
 
-testSucceed1 : s -> a -> GenericDecoder s a -> (() -> Expectation)
+testSucceed1 : ArrayBuffer -> a -> B.Decoder a -> (() -> Expectation)
 testSucceed1 source a decoder = \() ->
-  Expect.equal (Ok a) (G.decode decoder source)
+  Expect.equal (Ok a) (B.decode decoder source)
+
+
+testSucceedBit1 : Int -> a -> Bit.BitDecoder a -> (() -> Expectation)
+testSucceedBit1 source a decoder = \() ->
+  Expect.equal (Ok a) (Bit.decode decoder source)
 
 
 testSucceed : a -> B.Decoder a -> (() -> Expectation)
 testSucceed a decoder =
-  testSucceed1 Native.TestData.empty a decoder
+  testSucceed1 (uints []) a decoder
 
 
-testFail1 : s -> GenericDecoder s a -> (() -> Expectation)
+testFail1 : ArrayBuffer -> B.Decoder a -> (() -> Expectation)
 testFail1 source decoder = \() ->
-  case G.decode decoder source of
+  case B.decode decoder source of
+    Ok a ->
+      Expect.fail ("Unexpectedly succeed: " ++ toString a)
+
+    Err e ->
+      Expect.pass
+
+
+testFailBit1 : Int -> Bit.BitDecoder a -> (() -> Expectation)
+testFailBit1 source decoder = \() ->
+  case Bit.decode decoder source of
     Ok a ->
       Expect.fail ("Unexpectedly succeed: " ++ toString a)
 
@@ -55,7 +69,7 @@ testFail1 source decoder = \() ->
 
 testFail : String -> B.Decoder a -> (() -> Expectation)
 testFail err decoder = \() ->
-  case B.decode decoder (E.int 0) of
+  case B.decode decoder (uints []) of
     Ok a ->
       Expect.fail ("Unexpectedly succeed: " ++ toString a)
 
@@ -63,7 +77,7 @@ testFail err decoder = \() ->
       Expect.equal e.message err
 
 
-uints : List Int -> B.Binary
+uints : List Int -> ArrayBuffer
 uints list =
   Native.TestData.fromList list
 
@@ -100,7 +114,7 @@ primitivesAndCombinators =
       andThen (\a -> succeed (a - 1)) (succeed 3)
   , test "andThen" <| testFail "oops" <|
       andThen (\a -> fail "oops") (succeed 3)
-  , test "sequence" <| testSucceed1 Native.TestData.empty [] <|
+  , test "sequence" <| testSucceed1 (uints []) [] <|
       sequence []
   , test "sequence" <| testSucceed1 (uints [0,1,2,3]) [0,1,2,3] <|
       sequence (List.repeat 4 B.uint8)
@@ -162,30 +176,30 @@ decodeingBytes =
 
 decodeingBits : List Test
 decodeingBits =
-  [ test "int" <| testSucceed1 0 [0,0,0,0,0,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
-  , test "int" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 24) [0,0,0,0,0,0,0,1] <| sequence (List.repeat 8 (Bit.int 1))
-  , test "int" <| testSucceed1 (255 |> Bitwise.shiftLeftBy 24) [1,1,1,1,1,1,1,1] <| sequence (List.repeat 8 (Bit.int 1))
-  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) [0,0,0,0,1,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
-  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 0 <| Bit.int 4
-  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 1 <| Bit.int 5
-  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 2 <| Bit.int 6
-  , test "int" <| testSucceed1 (8 |> Bitwise.shiftLeftBy 24) 4 <| Bit.int 7
-  , test "bool" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 31) True <| Bit.bool
-  , test "bool" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 30) False <| Bit.bool
-  , test "ones" <| testSucceed1 (255 |> Bitwise.shiftLeftBy 24) () <| Bit.ones 8
-  , test "ones" <| testFail1 (254 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
-  , test "ones" <| testFail1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
-  , test "zeros" <| testSucceed1 (0 |> Bitwise.shiftLeftBy 24) () <| Bit.zeros 8
-  , test "ones" <| testFail1 (1 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
-  , test "ones" <| testFail1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
-  , test "choose" <| testSucceed1 (0 |> Bitwise.shiftLeftBy 30) 0 <| Bit.choose 2 [(0,0),(1,1),(2,2),(3,3)]
-  , test "choose" <| testSucceed1 (1 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 2 [(1,1),(2,2),(3,3)]
-  , test "choose" <| testSucceed1 (2 |> Bitwise.shiftLeftBy 30) 2 <| Bit.choose 2 [(2,2),(3,3)]
-  , test "choose" <| testSucceed1 (3 |> Bitwise.shiftLeftBy 30) 3 <| Bit.choose 2 [(3,3)]
-  , test "choose" <| testSucceed1 (3 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 1 [(1,1)]
-  , test "choose" <| testFail1 (3 |> Bitwise.shiftLeftBy 30) <| Bit.choose 1 [(3,3)]
-  , test "choose" <| testFail1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
-  , test "choose" <| testFail1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
+  [ test "int" <| testSucceedBit1 0 [0,0,0,0,0,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceedBit1 (1 |> Bitwise.shiftLeftBy 24) [0,0,0,0,0,0,0,1] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceedBit1 (255 |> Bitwise.shiftLeftBy 24) [1,1,1,1,1,1,1,1] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceedBit1 (8 |> Bitwise.shiftLeftBy 24) [0,0,0,0,1,0,0,0] <| sequence (List.repeat 8 (Bit.int 1))
+  , test "int" <| testSucceedBit1 (8 |> Bitwise.shiftLeftBy 24) 0 <| Bit.int 4
+  , test "int" <| testSucceedBit1 (8 |> Bitwise.shiftLeftBy 24) 1 <| Bit.int 5
+  , test "int" <| testSucceedBit1 (8 |> Bitwise.shiftLeftBy 24) 2 <| Bit.int 6
+  , test "int" <| testSucceedBit1 (8 |> Bitwise.shiftLeftBy 24) 4 <| Bit.int 7
+  , test "bool" <| testSucceedBit1 (1 |> Bitwise.shiftLeftBy 31) True <| Bit.bool
+  , test "bool" <| testSucceedBit1 (1 |> Bitwise.shiftLeftBy 30) False <| Bit.bool
+  , test "ones" <| testSucceedBit1 (255 |> Bitwise.shiftLeftBy 24) () <| Bit.ones 8
+  , test "ones" <| testFailBit1 (254 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
+  , test "ones" <| testFailBit1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.ones 8
+  , test "zeros" <| testSucceedBit1 (0 |> Bitwise.shiftLeftBy 24) () <| Bit.zeros 8
+  , test "ones" <| testFailBit1 (1 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
+  , test "ones" <| testFailBit1 (127 |> Bitwise.shiftLeftBy 24) <| Bit.zeros 8
+  , test "choose" <| testSucceedBit1 (0 |> Bitwise.shiftLeftBy 30) 0 <| Bit.choose 2 [(0,0),(1,1),(2,2),(3,3)]
+  , test "choose" <| testSucceedBit1 (1 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 2 [(1,1),(2,2),(3,3)]
+  , test "choose" <| testSucceedBit1 (2 |> Bitwise.shiftLeftBy 30) 2 <| Bit.choose 2 [(2,2),(3,3)]
+  , test "choose" <| testSucceedBit1 (3 |> Bitwise.shiftLeftBy 30) 3 <| Bit.choose 2 [(3,3)]
+  , test "choose" <| testSucceedBit1 (3 |> Bitwise.shiftLeftBy 30) 1 <| Bit.choose 1 [(1,1)]
+  , test "choose" <| testFailBit1 (3 |> Bitwise.shiftLeftBy 30) <| Bit.choose 1 [(3,3)]
+  , test "choose" <| testFailBit1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
+  , test "choose" <| testFailBit1 (0 |> Bitwise.shiftLeftBy 30) <| Bit.choose 2 []
   ]
 
 
@@ -198,12 +212,12 @@ decodeMidi =
   ]
 
 
-fromString : String -> B.Binary
+fromString : String -> ArrayBuffer
 fromString s =
   Native.TestData.fromList (String.toList s |> List.map Char.toCode)
 
 
-midi : B.Binary
+midi : ArrayBuffer
 midi =
   Native.TestData.fromList <|
     [77,84,104,100 -- 0
