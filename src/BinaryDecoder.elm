@@ -1,8 +1,8 @@
 module BinaryDecoder exposing
   ( succeed, fail
   , (|=), (|.), (|+)
-  , andThen, given, map, sequence
-  , from, goTo
+  , andThen, given, map, sequence, repeat
+  , from, goTo, skip
   , lazy
   , match, printError
   )
@@ -110,6 +110,11 @@ sequence decoders =
         )
 
 
+repeat : Int -> GenericDecoder s a -> GenericDecoder s (List a)
+repeat n decoder =
+  sequence (List.repeat n decoder)
+
+
 
 -- JUMP
 
@@ -130,6 +135,15 @@ goTo position =
   GenericDecoder
     (\context ->
       Ok ({ context | position = position }, ())
+    )
+
+
+{-|-}
+skip : Int -> GenericDecoder s ()
+skip size =
+  GenericDecoder
+    (\context ->
+      Ok ({ context | position = context.position + size }, ())
     )
 
 
