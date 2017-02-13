@@ -82,8 +82,7 @@ tagId3v2 =
              expansionHeader |> map Just
            else
              succeed Nothing )
-      -- |= id3v2Frames
-      |= succeed []
+      |= repeatUntil "break-frame-header-id" tagId3v2Frame
       |. skip ( if header.footer then 10 else 0 )
     )
 
@@ -167,7 +166,7 @@ tagId3v2FrameHeaderId =
         if 48 <= i && i <= 57 || 65 <= i && i <= 90 then
           succeed (Char.fromCode i)
         else
-          fail "invalid id"
+          fail "break-frame-header-id"
       )
     |> repeat 4
     |> map String.fromList

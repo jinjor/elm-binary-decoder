@@ -1,7 +1,7 @@
 module BinaryDecoder exposing
   ( succeed, fail
   , (|=), (|.), (|+)
-  , andThen, given, map, sequence, repeat
+  , andThen, given, map, sequence, repeat, repeatUntil
   , from, goTo, skip
   , lazy
   , match, printError
@@ -114,6 +114,29 @@ repeat : Int -> GenericDecoder s a -> GenericDecoder s (List a)
 repeat n decoder =
   sequence (List.repeat n decoder)
 
+
+
+{-|-}
+repeatUntil : String -> GenericDecoder s a -> GenericDecoder s (List a)
+repeatUntil key (GenericDecoder decode) =
+  GenericDecoder
+    (\context ->
+      repeatUntilHelp key decode context
+    )
+
+
+repeatUntilHelp : String -> (Context s -> Result Error (Context s, a)) -> Context s -> Result Error (Context s, List a)
+repeatUntilHelp key decode context =
+  case decode context of
+    Ok (newContext, head) ->
+      repeatUntilHelp key decode newContext
+        |> Result.map (\(c, tail) -> (c, head :: tail))
+
+    Err e ->
+      if e.message == key then
+        Ok (context, [])
+      else
+        Err { e | position = context.position }
 
 
 -- JUMP

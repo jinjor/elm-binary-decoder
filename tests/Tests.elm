@@ -140,6 +140,24 @@ primitivesAndCombinators =
         |. goTo 2
         |= B.uint8
         |= B.uint8
+  , test "repeat" <| testSucceed1 (uints [0,1,2,3]) [] <|
+      repeat 0 B.uint8
+  , test "repeat" <| testSucceed1 (uints [0,1,2,3]) [0,1,2,3] <|
+      repeat 4 B.uint8
+  , test "repeat" <| testFail1 (uints [0,1,2,3]) <|
+      repeat 5 B.uint8
+  , test "repeatUntil" <| testSucceed1 (uints [0,1,2,3]) [0,1] <|
+      repeatUntil "two"
+        ( B.uint8
+            |> andThen (\i -> if i == 2 then fail "two" else succeed i)
+        )
+  , test "repeatUntil" <| testFail1 (uints [0,1,2,3]) <|
+      repeatUntil "foo"
+        ( B.uint8
+            |> andThen (\i -> if i == 2 then fail "two" else succeed i)
+        )
+  , test "repeatUntil" <| testFail1 (uints [0,1,2,3]) <|
+      repeatUntil "foo" B.uint8
   ]
 
 
