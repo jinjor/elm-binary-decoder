@@ -146,28 +146,23 @@ primitivesAndCombinators =
       repeat 4 B.uint8
   , test "repeat" <| testFail1 (uints [0,1,2,3]) <|
       repeat 5 B.uint8
-  , test "repeatUntil" <| testSucceed1 (uints [0,1,2,3]) [0,1] <|
-      repeatUntil "two"
+  , test "many" <| testSucceed1 (uints [0,1,2,3]) [0,1] <|
+      many
         ( B.uint8
             |> andThen (\i -> if i == 2 then fail "two" else succeed i)
         )
-  , test "repeatUntil" <| testFail1 (uints [0,1,2,3]) <|
-      repeatUntil "foo"
-        ( B.uint8
-            |> andThen (\i -> if i == 2 then fail "two" else succeed i)
-        )
-  , test "repeatUntil" <| testSucceed1 (uints [0,1,2,3]) ([0,1],2,3) <|
+  , test "many" <| testSucceed1 (uints [0,1,2,3]) ([0,1],2,3) <|
       ( succeed (,,)
-          |= repeatUntil "done"
+          |= many
             ( B.uint8
                 |> andThen (\i -> if i == 2 then fail "done" else succeed i)
             )
           |= B.uint8
           |= B.uint8
       )
-  , test "repeatUntil" <| testSucceed1 (uints [0,1,2,3,4,5]) ([(0,1),(2,3)],4,5) <|
+  , test "many" <| testSucceed1 (uints [0,1,2,3,4,5]) ([(0,1),(2,3)],4,5) <|
       ( succeed (,,)
-          |= repeatUntil "done"
+          |= many
             ( succeed (,)
                 |= given B.uint8 (\i -> if i == 4 then fail "done" else succeed i)
                 |= B.uint8
@@ -175,9 +170,9 @@ primitivesAndCombinators =
           |= B.uint8
           |= B.uint8
       )
-  , test "repeatUntil" <| testSucceed1 (uints [0,1,2,3,4,5]) ([(0,1),(2,3)],4,5) <|
+  , test "many" <| testSucceed1 (uints [0,1,2,3,4,5]) ([(0,1),(2,3)],4,5) <|
       ( succeed (,,)
-          |= repeatUntil "done"
+          |= many
             ( succeed (,)
                 |= B.uint8
                 |= given B.uint8 (\i -> if i == 5 then fail "done" else succeed i)
@@ -185,8 +180,8 @@ primitivesAndCombinators =
           |= B.uint8
           |= B.uint8
       )
-  , test "repeatUntil" <| testFail1 (uints [0,1,2,3]) <|
-      repeatUntil "foo" B.uint8
+  , test "many" <| testSucceed1 (uints [0,1,2,3]) [0,1,2,3] <|
+      many B.uint8
   ]
 
 
