@@ -67,22 +67,22 @@ bool =
 
 
 
-matchInts : List Int -> BitDecoder ()
-matchInts ints =
-  match ints <|
+symbolInt : List Int -> BitDecoder ()
+symbolInt ints =
+  equal ints <|
     sequence ( List.map (always (int 1)) ints )
 
 
 {-|-}
 zeros : Int -> BitDecoder ()
 zeros length =
-  matchInts (List.repeat length 0)
+  symbolInt (List.repeat length 0)
 
 
 {-|-}
 ones : Int -> BitDecoder ()
 ones length =
-  matchInts (List.repeat length 1)
+  symbolInt (List.repeat length 1)
 
 
 {-|-}

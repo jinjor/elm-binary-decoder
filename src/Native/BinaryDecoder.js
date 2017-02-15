@@ -1,5 +1,51 @@
 var _jinjor$binary_decoder$Native_BinaryDecoder = function() {
 
+function toFileList(value) {
+  if(value instanceof FileList) {
+    return _elm_lang$core$Result$Ok(value);
+  } else {
+    var str = (typeof value == 'undefined') ? 'undefined' : JSON.stringify(value);
+    var message = 'Expected FileList but instead got: ' + str;
+    return _elm_lang$core$Result$Err(message);
+  }
+}
+
+function fileGet(index, fileList) {
+  var file = fileList[index];
+  if(file) {
+    return _elm_lang$core$Maybe$Just(file);
+  } else {
+    return _elm_lang$core$Maybe$Nothing;
+  }
+}
+
+function readFileAsArrayBuffer(file) {
+  var reader = new FileReader();
+  return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+  {
+    reader.addEventListener('load', function() {
+      callback(_elm_lang$core$Native_Scheduler.succeed(reader.result));
+    });
+    // reader.addEventListener('progress', function(e) {
+    //   if(e.lengthComputable) {
+    //     _elm_lang$core$Native_Scheduler.rawSpawn({
+    //       bytes: e.loaded,
+    //       bytesExpected: e.total
+    //     });
+    //   }
+    // });
+    reader.addEventListener('error', function() {
+      callback(_elm_lang$core$Native_Scheduler.fail(
+        _jinjor$binary_decoder$Native_BinaryDecoder$Error
+      ));
+    });
+    reader.readAsArrayBuffer(file);
+    return function() {
+      reader.abort();
+    };
+  });
+}
+
 function toDataView(buffer) {
   return new DataView(buffer);
 }
@@ -67,6 +113,9 @@ function int32(littleEndian) {
 }
 
 return {
+  toFileList: toFileList,
+  fileGet: F2(fileGet),
+  readFileAsArrayBuffer: readFileAsArrayBuffer,
 	toDataView: toDataView,
 	decodeInt: F2(decodeInt),
 	uint8: uint8,

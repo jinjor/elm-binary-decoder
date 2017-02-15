@@ -4,7 +4,7 @@ module BinaryDecoder exposing
   , andThen, given, map, sequence, repeat, many
   , from, goTo, skip
   , lazy
-  , match, printError
+  , equal, match, printError
   )
 
 
@@ -188,14 +188,25 @@ lazy thunk =
 
 
 {-|-}
-match : a -> GenericDecoder s a -> GenericDecoder s ()
-match expected decoder =
+equal : a -> GenericDecoder s a -> GenericDecoder s ()
+equal expected decoder =
   decoder
     |> andThen (\a ->
         if a == expected then
           succeed ()
         else
           fail ("expected " ++ toString expected ++ ", but got " ++ toString a)
+      )
+
+
+match : (a -> Bool) -> GenericDecoder s a -> GenericDecoder s ()
+match isOk decoder =
+  decoder
+    |> andThen (\a ->
+        if isOk a then
+          succeed ()
+        else
+          fail (toString a ++ " is not expected here")
       )
 
 {-|-}

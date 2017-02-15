@@ -2,7 +2,7 @@ module BinaryDecoder.Byte exposing
   ( ArrayBuffer, Decoder, decode
   , uint8, uint16BE, uint16LE, uint32BE, uint32LE
   , int8, int16BE, int16LE, int32BE, int32LE
-  , char, symbol, bits
+  , char, string, symbol, symbolInt, bits
   )
 
 
@@ -139,12 +139,22 @@ char =
 
 
 {-|-}
+string : Int -> Decoder String
+string length =
+  repeat length char
+    |> map String.fromList
+
+
+{-|-}
 symbol : String -> Decoder ()
 symbol s =
-  match s
-    ( sequence (List.repeat (String.length s) char)
-        |> map String.fromList
-    )
+  equal s (string (String.length s))
+
+
+{-|-}
+symbolInt : List Int -> Decoder ()
+symbolInt list =
+  equal list (repeat (List.length list) uint8)
 
 
 {-|-}

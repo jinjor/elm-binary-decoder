@@ -74,6 +74,12 @@ type ChannelMode
   | SingleChannel
 
 
+mp3 : Decoder Mp3
+mp3 =
+  succeed Mp3
+    |= tagId3v2
+
+
 tagId3v2 : Decoder TagId3v2
 tagId3v2 =
   given tagId3v2Header (\header ->
