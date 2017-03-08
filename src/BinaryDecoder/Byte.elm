@@ -2,7 +2,7 @@ module BinaryDecoder.Byte exposing
   ( ArrayBuffer, Decoder, decode
   , uint8, uint16BE, uint16LE, uint32BE, uint32LE
   , int8, int16BE, int16LE, int32BE, int32LE
-  , char, string, symbol, symbolInt, bits
+  , char, string, stringUntilNull, symbol, symbolInt, choose, bits
   )
 
 
@@ -11,6 +11,7 @@ module BinaryDecoder.Byte exposing
 
 import Char
 import Bitwise
+import Dict
 import Json.Encode
 import BinaryDecoder exposing (..)
 import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
@@ -146,6 +147,31 @@ string length =
 
 
 {-|-}
+stringUntilNull : Decoder String
+stringUntilNull =
+  succeed String.fromList
+    |= many nonNullChar
+    |. uint8
+
+
+nonNullInt : Decoder Int
+nonNullInt =
+  uint8
+    |> andThen
+      (\i ->
+        if i > 0 then
+          succeed i
+        else
+          fail "null char"
+      )
+
+
+nonNullChar : Decoder Char
+nonNullChar =
+  map Char.fromCode nonNullInt
+
+
+{-|-}
 symbol : String -> Decoder ()
 symbol s =
   equal s (string (String.length s))
@@ -155,6 +181,18 @@ symbol s =
 symbolInt : List Int -> Decoder ()
 symbolInt list =
   equal list (repeat (List.length list) uint8)
+
+
+{-|-}
+choose : List (Int, a) -> Decoder a
+choose list =
+  given uint8 (\i ->
+    list
+      |> Dict.fromList
+      |> Dict.get i
+      |> Maybe.map succeed
+      |> Maybe.withDefault (fail ("no option is given for index: " ++ toString i))
+  )
 
 
 {-|-}

@@ -5,7 +5,7 @@ import Bitwise
 import Char
 import BinaryDecoder exposing (..)
 import BinaryDecoder.Byte exposing (..)
-import BinaryDecoder.Bit exposing (..)
+import BinaryDecoder.Bit as Bit exposing (..)
 
 
 type alias Mp3 =
@@ -200,8 +200,8 @@ frameHeader =
   bits 4 <|
     succeed FrameHeader
       |. ones 11
-      |= choose 2 [ (0, MPEGv25), (2, MPEGv2), (3, MPEGv1) ]
-      |= choose 2 [ (1, Layer3), (2, Layer2), (3, Layer1) ]
+      |= Bit.choose 2 [ (0, MPEGv25), (2, MPEGv2), (3, MPEGv1) ]
+      |= Bit.choose 2 [ (1, Layer3), (2, Layer2), (3, Layer1) ]
       |= bool
       |= int 4
       |= int 2
@@ -210,7 +210,7 @@ frameHeader =
       |= channelMode
       |= bool
       |= bool
-      |= choose 2 [ (1, "50/15"), (2, ""), (3, "CCIT J.17") ]
+      |= Bit.choose 2 [ (1, "50/15"), (2, ""), (3, "CCIT J.17") ]
 
 
 channelMode : BitDecoder ChannelMode

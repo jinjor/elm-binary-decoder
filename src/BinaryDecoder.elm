@@ -136,6 +136,28 @@ manyHelp decode context =
       Ok (context, [])
 
 
+-- oneOf : List (GenericDecoder s a) -> GenericDecoder s a
+-- oneOf decoders =
+--   GenericDecoder (\context ->
+--     oneOfHelp context decoders
+--   )
+--
+--
+-- oneOfHelp : Context s -> List (GenericDecoder s a) -> Result Error (Context s, a)
+-- oneOfHelp context decoders =
+--   case decoders of
+--     [] ->
+--       Err (Error context.position "none of decoders succeeds")
+--
+--     (GenericDecoder decode) :: tail ->
+--       case decode context of
+--         Err _ ->
+--           oneOfHelp context tail
+--
+--         ok ->
+--           ok
+
+
 -- JUMP
 
 
