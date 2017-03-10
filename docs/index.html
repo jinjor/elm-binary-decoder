@@ -8537,6 +8537,11 @@ var _jinjor$binary_decoder$BinaryDecoder$from = F2(
 							{position: position})));
 			});
 	});
+var _jinjor$binary_decoder$BinaryDecoder$position = _jinjor$binary_decoder$BinaryDecoder_GenericDecoder$GenericDecoder(
+	function (context) {
+		return _elm_lang$core$Result$Ok(
+			{ctor: '_Tuple2', _0: context, _1: context.position});
+	});
 var _jinjor$binary_decoder$BinaryDecoder$manyHelp = F2(
 	function (decode, context) {
 		var _p5 = decode(context);
@@ -8929,6 +8934,12 @@ var _jinjor$binary_decoder$BinaryDecoder_Byte$int = function (option) {
 		_jinjor$binary_decoder$BinaryDecoder_Byte$nativeDecodeInt(option));
 };
 var _jinjor$binary_decoder$BinaryDecoder_Byte$uint8 = _jinjor$binary_decoder$BinaryDecoder_Byte$int(_jinjor$binary_decoder$Native_BinaryDecoder.uint8);
+var _jinjor$binary_decoder$BinaryDecoder_Byte$bool = A2(
+	_jinjor$binary_decoder$BinaryDecoder$map,
+	function (i) {
+		return _elm_lang$core$Native_Utils.cmp(i, 0) > 0;
+	},
+	_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 var _jinjor$binary_decoder$BinaryDecoder_Byte$char = A2(_jinjor$binary_decoder$BinaryDecoder$map, _elm_lang$core$Char$fromCode, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 var _jinjor$binary_decoder$BinaryDecoder_Byte$string = function (length) {
 	return A2(
@@ -9656,18 +9667,23 @@ var _jinjor$binary_decoder$PngDecoder$iendChunk = {
 					{iend: true}));
 		})
 };
-var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
-	id: 'iTXt',
-	bodyDecoder: F2(
-		function (length, png) {
-			return A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(png),
-				_jinjor$binary_decoder$BinaryDecoder$skip(length));
-		})
-};
+var _jinjor$binary_decoder$PngDecoder$rgb = A2(
+	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+	A2(
+		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+		A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
+				F3(
+					function (v0, v1, v2) {
+						return {ctor: '_Tuple3', _0: v0, _1: v1, _2: v2};
+					})),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+	_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 var _jinjor$binary_decoder$PngDecoder$init = {
 	ihdr: _elm_lang$core$Maybe$Nothing,
+	plte: _elm_lang$core$Maybe$Nothing,
 	data: {ctor: '[]'},
 	gama: _elm_lang$core$Maybe$Nothing,
 	chrm: _elm_lang$core$Maybe$Nothing,
@@ -9682,7 +9698,8 @@ var _jinjor$binary_decoder$PngDecoder$init = {
 	splt: {ctor: '[]'},
 	hist: _elm_lang$core$Maybe$Nothing,
 	time: _elm_lang$core$Maybe$Nothing,
-	iend: false
+	iend: false,
+	others: {ctor: '[]'}
 };
 var _jinjor$binary_decoder$PngDecoder$Png = function (a) {
 	return function (b) {
@@ -9700,7 +9717,11 @@ var _jinjor$binary_decoder$PngDecoder$Png = function (a) {
 													return function (n) {
 														return function (o) {
 															return function (p) {
-																return {ihdr: a, data: b, gama: c, chrm: d, srgb: e, iccp: f, text: g, ztxt: h, itxt: i, bkgd: j, phys: k, sbit: l, splt: m, hist: n, time: o, iend: p};
+																return function (q) {
+																	return function (r) {
+																		return {ihdr: a, plte: b, data: c, gama: d, chrm: e, srgb: f, iccp: g, text: h, ztxt: i, itxt: j, bkgd: k, phys: l, sbit: m, splt: n, hist: o, time: p, iend: q, others: r};
+																	};
+																};
 															};
 														};
 													};
@@ -9756,6 +9777,28 @@ var _jinjor$binary_decoder$PngDecoder$ihdrChunk = {
 							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 						_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8));
+		})
+};
+var _jinjor$binary_decoder$PngDecoder$PlteChunk = function (a) {
+	return {values: a};
+};
+var _jinjor$binary_decoder$PngDecoder$plteChunk = {
+	id: 'PLTE',
+	bodyDecoder: F2(
+		function (length, png) {
+			return A2(
+				_jinjor$binary_decoder$BinaryDecoder$map,
+				function (a) {
+					return _elm_lang$core$Native_Utils.update(
+						png,
+						{
+							plte: _elm_lang$core$Maybe$Just(a)
+						});
+				},
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$PngDecoder$PlteChunk),
+					A2(_jinjor$binary_decoder$BinaryDecoder$repeat, (length / 3) | 0, _jinjor$binary_decoder$PngDecoder$rgb)));
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$GamaChunk = function (a) {
@@ -9942,6 +9985,54 @@ var _jinjor$binary_decoder$PngDecoder$ztxtChunk = {
 				});
 		})
 };
+var _jinjor$binary_decoder$PngDecoder$ItxtChunk = F6(
+	function (a, b, c, d, e, f) {
+		return {keyword: a, compressed: b, complessType: c, langTag: d, translationKeyword: e, text: f};
+	});
+var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
+	id: 'iTXt',
+	bodyDecoder: F2(
+		function (length, png) {
+			return A2(
+				_jinjor$binary_decoder$BinaryDecoder$map,
+				function (a) {
+					return _elm_lang$core$Native_Utils.update(
+						png,
+						{
+							itxt: {ctor: '::', _0: a, _1: png.itxt}
+						});
+				},
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder$given,
+					_jinjor$binary_decoder$BinaryDecoder$position,
+					function (pos) {
+						return A2(
+							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+							A2(
+								_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+								A2(
+									_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+									A2(
+										_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+										A2(
+											_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+											A2(
+												_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+												_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$PngDecoder$ItxtChunk),
+												_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull),
+											_jinjor$binary_decoder$BinaryDecoder_Byte$bool),
+										_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+									_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull),
+								_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull),
+							A2(
+								_jinjor$binary_decoder$BinaryDecoder$given,
+								_jinjor$binary_decoder$BinaryDecoder$position,
+								function (start) {
+									return _jinjor$binary_decoder$BinaryDecoder_Byte$string((pos + length) - start);
+								}));
+					}));
+		})
+};
 var _jinjor$binary_decoder$PngDecoder$PhysChunk = F3(
 	function (a, b, c) {
 		return {pixelXperUnit: a, pixelYperUnit: b, isMeter: c};
@@ -9978,6 +10069,70 @@ var _jinjor$binary_decoder$PngDecoder$physChunk = {
 								_1: {ctor: '[]'}
 							}
 						})));
+		})
+};
+var _jinjor$binary_decoder$PngDecoder$SpltChunk = F3(
+	function (a, b, c) {
+		return {paletteName: a, sampleDepth: b, values: c};
+	});
+var _jinjor$binary_decoder$PngDecoder$SpltValue = F5(
+	function (a, b, c, d, e) {
+		return {red: a, green: b, blue: c, alpha: d, frequency: e};
+	});
+var _jinjor$binary_decoder$PngDecoder$spltValue = function (doubled) {
+	return A2(
+		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+		A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					A2(
+						_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+						_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$PngDecoder$SpltValue),
+						doubled ? _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE : _jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+					doubled ? _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE : _jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+				doubled ? _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE : _jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+			doubled ? _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE : _jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE);
+};
+var _jinjor$binary_decoder$PngDecoder$spltChunk = {
+	id: 'sPLT',
+	bodyDecoder: F2(
+		function (length, png) {
+			return A2(
+				_jinjor$binary_decoder$BinaryDecoder$map,
+				function (a) {
+					return _elm_lang$core$Native_Utils.update(
+						png,
+						{
+							splt: {ctor: '::', _0: a, _1: png.splt}
+						});
+				},
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder$given,
+					_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull,
+					function (paletteName) {
+						return A2(
+							_jinjor$binary_decoder$BinaryDecoder$given,
+							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+							function (depth) {
+								var restLength = (length - _elm_lang$core$String$length(paletteName)) - 2;
+								var values = _elm_lang$core$Native_Utils.eq(depth, 8) ? A2(
+									_jinjor$binary_decoder$BinaryDecoder$repeat,
+									(restLength / 6) | 0,
+									_jinjor$binary_decoder$PngDecoder$spltValue(false)) : (_elm_lang$core$Native_Utils.eq(depth, 16) ? A2(
+									_jinjor$binary_decoder$BinaryDecoder$repeat,
+									(restLength / 10) | 0,
+									_jinjor$binary_decoder$PngDecoder$spltValue(true)) : _jinjor$binary_decoder$BinaryDecoder$fail(''));
+								return A2(
+									_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+									_jinjor$binary_decoder$BinaryDecoder$succeed(
+										A2(_jinjor$binary_decoder$PngDecoder$SpltChunk, paletteName, depth)),
+									values);
+							});
+					}));
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$HistChunk = function (a) {
@@ -10043,9 +10198,10 @@ var _jinjor$binary_decoder$PngDecoder$timeChunk = {
 var _jinjor$binary_decoder$PngDecoder$UnknownChunk = function (a) {
 	return {id: a};
 };
-var _jinjor$binary_decoder$PngDecoder$IdatChunk = function (a) {
-	return {length: a};
-};
+var _jinjor$binary_decoder$PngDecoder$IdatChunk = F2(
+	function (a, b) {
+		return {length: a, position: b};
+	});
 var _jinjor$binary_decoder$PngDecoder$idatChunk = {
 	id: 'IDAT',
 	bodyDecoder: F2(
@@ -10061,10 +10217,38 @@ var _jinjor$binary_decoder$PngDecoder$idatChunk = {
 				},
 				A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$PngDecoder$IdatChunk(length)),
+					A2(
+						_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+						_jinjor$binary_decoder$BinaryDecoder$succeed(
+							_jinjor$binary_decoder$PngDecoder$IdatChunk(length)),
+						_jinjor$binary_decoder$BinaryDecoder$position),
 					_jinjor$binary_decoder$BinaryDecoder$skip(length)));
 		})
+};
+var _jinjor$binary_decoder$PngDecoder$OtherChunk = function (a) {
+	return {id: a};
+};
+var _jinjor$binary_decoder$PngDecoder$otherChunk = function (id) {
+	return {
+		id: id,
+		bodyDecoder: F2(
+			function (length, png) {
+				return A2(
+					_jinjor$binary_decoder$BinaryDecoder$map,
+					function (a) {
+						return _elm_lang$core$Native_Utils.update(
+							png,
+							{
+								others: {ctor: '::', _0: a, _1: png.others}
+							});
+					},
+					A2(
+						_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+						_jinjor$binary_decoder$BinaryDecoder$succeed(
+							_jinjor$binary_decoder$PngDecoder$OtherChunk(id)),
+						_jinjor$binary_decoder$BinaryDecoder$skip(length)));
+			})
+	};
 };
 var _jinjor$binary_decoder$PngDecoder$ChunkProfile = F2(
 	function (a, b) {
@@ -10230,47 +10414,83 @@ var _jinjor$binary_decoder$PngDecoder$chunkProfiles = _elm_lang$core$Dict$fromLi
 			_0: _jinjor$binary_decoder$PngDecoder$ihdrChunk,
 			_1: {
 				ctor: '::',
-				_0: _jinjor$binary_decoder$PngDecoder$gamaChunk,
+				_0: _jinjor$binary_decoder$PngDecoder$plteChunk,
 				_1: {
 					ctor: '::',
-					_0: _jinjor$binary_decoder$PngDecoder$chrmChunk,
+					_0: _jinjor$binary_decoder$PngDecoder$gamaChunk,
 					_1: {
 						ctor: '::',
-						_0: _jinjor$binary_decoder$PngDecoder$srgbChunk,
+						_0: _jinjor$binary_decoder$PngDecoder$chrmChunk,
 						_1: {
 							ctor: '::',
-							_0: _jinjor$binary_decoder$PngDecoder$iccpChunk,
+							_0: _jinjor$binary_decoder$PngDecoder$srgbChunk,
 							_1: {
 								ctor: '::',
-								_0: _jinjor$binary_decoder$PngDecoder$textChunk,
+								_0: _jinjor$binary_decoder$PngDecoder$iccpChunk,
 								_1: {
 									ctor: '::',
-									_0: _jinjor$binary_decoder$PngDecoder$ztxtChunk,
+									_0: _jinjor$binary_decoder$PngDecoder$textChunk,
 									_1: {
 										ctor: '::',
-										_0: _jinjor$binary_decoder$PngDecoder$itxtChunk,
+										_0: _jinjor$binary_decoder$PngDecoder$ztxtChunk,
 										_1: {
 											ctor: '::',
-											_0: _jinjor$binary_decoder$PngDecoder$bkgdChunk,
+											_0: _jinjor$binary_decoder$PngDecoder$itxtChunk,
 											_1: {
 												ctor: '::',
-												_0: _jinjor$binary_decoder$PngDecoder$physChunk,
+												_0: _jinjor$binary_decoder$PngDecoder$bkgdChunk,
 												_1: {
 													ctor: '::',
-													_0: _jinjor$binary_decoder$PngDecoder$sbitChunk,
+													_0: _jinjor$binary_decoder$PngDecoder$physChunk,
 													_1: {
 														ctor: '::',
-														_0: _jinjor$binary_decoder$PngDecoder$histChunk,
+														_0: _jinjor$binary_decoder$PngDecoder$sbitChunk,
 														_1: {
 															ctor: '::',
-															_0: _jinjor$binary_decoder$PngDecoder$timeChunk,
+															_0: _jinjor$binary_decoder$PngDecoder$spltChunk,
 															_1: {
 																ctor: '::',
-																_0: _jinjor$binary_decoder$PngDecoder$idatChunk,
+																_0: _jinjor$binary_decoder$PngDecoder$histChunk,
 																_1: {
 																	ctor: '::',
-																	_0: _jinjor$binary_decoder$PngDecoder$iendChunk,
-																	_1: {ctor: '[]'}
+																	_0: _jinjor$binary_decoder$PngDecoder$timeChunk,
+																	_1: {
+																		ctor: '::',
+																		_0: _jinjor$binary_decoder$PngDecoder$idatChunk,
+																		_1: {
+																			ctor: '::',
+																			_0: _jinjor$binary_decoder$PngDecoder$iendChunk,
+																			_1: {
+																				ctor: '::',
+																				_0: _jinjor$binary_decoder$PngDecoder$otherChunk('fRAc'),
+																				_1: {
+																					ctor: '::',
+																					_0: _jinjor$binary_decoder$PngDecoder$otherChunk('gIFg'),
+																					_1: {
+																						ctor: '::',
+																						_0: _jinjor$binary_decoder$PngDecoder$otherChunk('gIFt'),
+																						_1: {
+																							ctor: '::',
+																							_0: _jinjor$binary_decoder$PngDecoder$otherChunk('gIFx'),
+																							_1: {
+																								ctor: '::',
+																								_0: _jinjor$binary_decoder$PngDecoder$otherChunk('oFFs'),
+																								_1: {
+																									ctor: '::',
+																									_0: _jinjor$binary_decoder$PngDecoder$otherChunk('pCAL'),
+																									_1: {
+																										ctor: '::',
+																										_0: _jinjor$binary_decoder$PngDecoder$otherChunk('sCAL'),
+																										_1: {ctor: '[]'}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
 																}
 															}
 														}

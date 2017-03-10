@@ -5,11 +5,11 @@ import Char
 import Dict exposing (Dict)
 import BinaryDecoder exposing (..)
 import BinaryDecoder.Byte exposing (..)
--- import BinaryDecoder.Bit exposing (..)
 
 
 type alias Png =
   { ihdr : Maybe IhdrChunk
+  , plte : Maybe PlteChunk
   , data : List IdatChunk
   , gama : Maybe GamaChunk
   , chrm : Maybe ChrmChunk
@@ -17,20 +17,22 @@ type alias Png =
   , iccp : Maybe IccpChunk
   , text : List TextChunk
   , ztxt : List ZtxtChunk
-  , itxt : List ()
+  , itxt : List ItxtChunk
   , bkgd : Maybe BkgdChunk
   , phys : Maybe PhysChunk
   , sbit : Maybe SbitChunk
-  , splt : List ()
+  , splt : List SpltChunk
   , hist : Maybe HistChunk
   , time : Maybe TimeChunk
   , iend : Bool
+  , others : List OtherChunk
   }
 
 
 init : Png
 init =
   { ihdr = Nothing
+  , plte = Nothing
   , data = []
   , gama = Nothing
   , chrm = Nothing
@@ -46,6 +48,7 @@ init =
   , hist = Nothing
   , time = Nothing
   , iend = False
+  , others = []
   }
 
 
@@ -57,6 +60,11 @@ type alias IhdrChunk =
   , compress : Int
   , filter : Int
   , interlace : Int
+  }
+
+
+type alias PlteChunk =
+  { values : List (Int, Int, Int)
   }
 
 
@@ -99,6 +107,16 @@ type alias ZtxtChunk =
   }
 
 
+type alias ItxtChunk =
+  { keyword : String
+  , compressed : Bool
+  , complessType : Int
+  , langTag : String
+  , translationKeyword : String
+  , text : String
+  }
+
+
 type BkgdChunk
   = IndexedColor Int
   | GrayScale Int
@@ -118,6 +136,22 @@ type SbitChunk
   | SbitChunk2 Int Int Int
   | SbitChunk4 Int Int
   | SbitChunk6 Int Int Int Int
+
+
+type alias SpltChunk =
+  { paletteName : String
+  , sampleDepth : Int
+  , values : List SpltValue
+  }
+
+
+type alias SpltValue =
+  { red : Int
+  , green : Int
+  , blue : Int
+  , alpha : Int
+  , frequency : Int
+  }
 
 
 type alias HistChunk =
@@ -142,6 +176,12 @@ type alias UnknownChunk =
 
 type alias IdatChunk =
   { length : Int
+  , position: Int
+  }
+
+
+type alias OtherChunk =
+  { id : String
   }
 
 
@@ -177,6 +217,7 @@ chunk png =
 chunkProfiles : Dict String ChunkProfile
 chunkProfiles =
   [ ihdrChunk
+  , plteChunk
   , gamaChunk
   , chrmChunk
   , srgbChunk
@@ -187,14 +228,21 @@ chunkProfiles =
   , bkgdChunk
   , physChunk
   , sbitChunk
+  , spltChunk
   , histChunk
   , timeChunk
   , idatChunk
   , iendChunk
+  , otherChunk "fRAc"
+  , otherChunk "gIFg"
+  , otherChunk "gIFt"
+  , otherChunk "gIFx"
+  , otherChunk "oFFs"
+  , otherChunk "pCAL"
+  , otherChunk "sCAL"
   ]
   |> List.map (\prof -> (prof.id, prof))
   |> Dict.fromList
-
 
 
 type alias ChunkProfile =
@@ -217,6 +265,24 @@ ihdrChunk =
         |= uint8
         |> map (\a -> { png | ihdr = Just a })
   }
+
+
+plteChunk : ChunkProfile
+plteChunk =
+  { id = "PLTE"
+  , bodyDecoder = \length png ->
+      succeed PlteChunk
+        |= repeat (length // 3) rgb
+        |> map (\a -> { png | plte = Just a })
+  }
+
+
+rgb : Decoder (Int, Int, Int)
+rgb =
+  succeed (,,)
+    |= uint8
+    |= uint8
+    |= uint8
 
 
 gamaChunk : ChunkProfile
@@ -298,8 +364,18 @@ itxtChunk : ChunkProfile
 itxtChunk =
   { id = "iTXt"
   , bodyDecoder = \length png ->
-      succeed png
-        |. skip length -- TODO
+      given position (\pos ->
+        succeed ItxtChunk
+          |= stringUntilNull
+          |= bool
+          |= uint8
+          |= stringUntilNull
+          |= stringUntilNull
+          |= given position (\start ->
+            string (pos + length - start)
+          )
+      )
+      |> map (\a -> { png | itxt = a :: png.itxt })
   }
 
 
@@ -381,6 +457,41 @@ sbitChunk =
   }
 
 
+spltChunk : ChunkProfile
+spltChunk =
+  { id = "sPLT"
+  , bodyDecoder = \length png ->
+      given stringUntilNull (\paletteName ->
+      given uint8 (\depth ->
+        let
+          restLength =
+            length - String.length paletteName - 2
+
+          values =
+            if depth == 8 then
+              repeat (restLength // 6) (spltValue False)
+            else if depth == 16 then
+              repeat (restLength // 10) (spltValue True)
+            else
+              fail ""
+        in
+          succeed (SpltChunk paletteName depth)
+            |= values
+      ))
+      |> map (\a -> { png | splt = a :: png.splt })
+  }
+
+
+spltValue : Bool -> Decoder SpltValue
+spltValue doubled =
+  succeed SpltValue
+    |= (if doubled then uint16BE else uint8)
+    |= (if doubled then uint16BE else uint8)
+    |= (if doubled then uint16BE else uint8)
+    |= (if doubled then uint16BE else uint8)
+    |= uint16BE
+
+
 histChunk : ChunkProfile
 histChunk =
   { id = "hIST"
@@ -411,9 +522,11 @@ idatChunk =
   { id = "IDAT"
   , bodyDecoder = \length png ->
       succeed (IdatChunk length)
+        |= position
         |. skip length
       |> map (\a -> { png | data = a :: png.data })
   }
+
 
 iendChunk : ChunkProfile
 iendChunk =
@@ -423,8 +536,22 @@ iendChunk =
   }
 
 
+otherChunk : String -> ChunkProfile
+otherChunk id =
+  { id = id
+  , bodyDecoder = \length png ->
+      succeed (OtherChunk id)
+        |. skip length
+        |> map (\a ->  { png | others = a :: png.others })
+  }
+
 
 {-
+
+TODO: Valdation is not implemented.
+
+Each chunk's right position is like below.
+
 A: PLTE ~ IDAT
 B: ~ PLTE IDAT
 C: IHDR ~ IEND

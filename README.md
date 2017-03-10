@@ -9,7 +9,7 @@ Experimental binary decoder inspired by [elm-tools/parser](http://package.elm-la
 ## How to use?
 
 You can write `.wav` file decoder like this.
-See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (They are very rough for real usage.)
+See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (They are too rough for real usage.)
 
 ```elm
 wave : Decoder Wave
@@ -39,27 +39,44 @@ formatChunk =
 ```
 
 This example only decodes meta data because the cost of using immutable data should be expensive.
-I think it'd be better to treat big data as a service outside.
-You keep track with the positions of data and communicate with outside using requests.
 
 
-## Difference from "parser"
+## Bytes and Bits
 
-This is a "decoder".
-The key defference is that binary data often have strictly defined formats.
+You can use two decoders together.
 
-Things this decoder do NOT have:
+This is an example of Mp3Decoder.
 
-* Ignore many white spaces
-* Read until certain charactors
-* Try many branches
+```elm
+tagId3v2FrameHeaderFlags : Decoder TagId3v2FrameHeaderFlags
+tagId3v2FrameHeaderFlags =
+  -- This is (Btye) Decoder
+  bits 2 <|
+    -- and, this is BitDecoder.
+    succeed TagId3v2FrameHeaderFlags
+      |. goTo 1
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
+      |. goTo 9
+      |= Bit.bool
+      |. goTo 12
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
+```
 
-Instead this decoder have:
+While "Btye" decoder decodes the whole binary data, "Bit" decoder only decodes an Int value.
+
+
+## What's special about this library?
+
+Binary format offen give you the size of data before you read it.
+So, there are many useful functions for using these meta information.
 
 * Jump to certain position and read from there
-
-It is very common to read data size to know where to find next data.
-You can use `andThen` or `given` to get size, then use `from` or `goTo` to jump to certain position.
+* Read bytes until certain position
 
 
 ## Status
@@ -68,8 +85,6 @@ This library is still in a very experimental phase.
 
 It would be nice to have following features:
 
-* Correctly typed binary data
-* Safe referrence to mutable data
 * Fetch data from server
 * Load data from local
 * Read streaming data

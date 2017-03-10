@@ -2,7 +2,7 @@ module BinaryDecoder.Byte exposing
   ( ArrayBuffer, Decoder, decode
   , uint8, uint16BE, uint16LE, uint32BE, uint32LE
   , int8, int16BE, int16LE, int32BE, int32LE
-  , char, string, stringUntilNull, symbol, symbolInt, choose, bits
+  , bool, char, string, stringUntilNull, symbol, symbolInt, choose, bits
   )
 
 
@@ -130,6 +130,14 @@ int32LE =
 
 
 -- UTILITY
+
+
+{-|-}
+bool : Decoder Bool
+bool =
+  uint8
+    |> map (\i -> i > 0)
+
 
 
 {-|-}

@@ -2,7 +2,7 @@ module BinaryDecoder exposing
   ( succeed, fail
   , (|=), (|.), (|+)
   , andThen, given, map, sequence, repeat, many
-  , from, goTo, skip
+  , position, from, goTo, skip
   , lazy
   , equal, match, printError
   )
@@ -158,7 +158,16 @@ manyHelp decode context =
 --           ok
 
 
--- JUMP
+-- POSITION
+
+
+{-|-}
+position : GenericDecoder s Int
+position =
+  GenericDecoder (\context ->
+    Ok (context, context.position)
+  )
+
 
 
 {-|-}

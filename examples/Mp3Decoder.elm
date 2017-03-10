@@ -102,10 +102,10 @@ tagId3v2Header =
     |+ (\f ->
         bits 1 <|
           succeed f
-            |= bool
-            |= bool
-            |= bool
-            |= bool
+            |= Bit.bool
+            |= Bit.bool
+            |= Bit.bool
+            |= Bit.bool
         )
     |= syncSafeInt
 
@@ -183,16 +183,16 @@ tagId3v2FrameHeaderFlags =
   bits 2 <|
     succeed TagId3v2FrameHeaderFlags
       |. goTo 1
-      |= bool
-      |= bool
-      |= bool
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
       |. goTo 9
-      |= bool
+      |= Bit.bool
       |. goTo 12
-      |= bool
-      |= bool
-      |= bool
-      |= bool
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
+      |= Bit.bool
 
 
 frameHeader : Decoder FrameHeader
@@ -202,14 +202,14 @@ frameHeader =
       |. ones 11
       |= Bit.choose 2 [ (0, MPEGv25), (2, MPEGv2), (3, MPEGv1) ]
       |= Bit.choose 2 [ (1, Layer3), (2, Layer2), (3, Layer1) ]
-      |= bool
+      |= Bit.bool
       |= int 4
       |= int 2
-      |= bool
-      |= bool
+      |= Bit.bool
+      |= Bit.bool
       |= channelMode
-      |= bool
-      |= bool
+      |= Bit.bool
+      |= Bit.bool
       |= Bit.choose 2 [ (1, "50/15"), (2, ""), (3, "CCIT J.17") ]
 
 
