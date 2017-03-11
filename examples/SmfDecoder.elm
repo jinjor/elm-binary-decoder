@@ -1,4 +1,4 @@
-module MidiDecoder exposing (..)
+module SmfDecoder exposing (..)
 
 
 import Bitwise
@@ -6,9 +6,9 @@ import BinaryDecoder.Byte exposing (..)
 import BinaryDecoder exposing (..)
 
 
-type alias Midi =
+type alias Smf =
   { header : Header
-  , body : Body
+  , tracks : List Track
   }
 
 
@@ -20,25 +20,32 @@ type alias Header =
   }
 
 
-type alias Body =
+type alias Track =
   { length : Int
-  , dataList : List (Int, Data)
+  , values : List (Int, Data)
   }
 
 
+type alias Channel = Int
+type alias Note = Int
+
 type Data
-  = NoteOn Int Int Int
-  | NoteOff Int Int
-  | ProgramChange Int Int
+  = NoteOn Channel Note Int
+  | NoteOff Channel Note
+  | KeyPressure Channel Int Int
+  | ControlChange Channel Int Int
+  | ProgramChange Channel Int
+  | ChannelPressure Channel Int
+  | PitchWheelChange Channel Int
   | End
 
 
 
-midi : Decoder Midi
-midi =
+smf : Decoder Smf
+smf =
   given header (\header ->
-    succeed (Midi header)
-      |= from (header.length + 8) body
+    succeed (Smf header)
+      |= from (header.length + 8) (repeat header.trackNumber track)
   )
 
 
@@ -52,9 +59,9 @@ header =
     |= uint16BE
 
 
-body : Decoder Body
-body =
-  succeed Body
+track : Decoder Track
+track =
+  succeed Track
     |. symbol "MTrk"
     |= uint32BE
     |= dataList
@@ -86,19 +93,40 @@ data =
         if num // 16 == 8 then
           succeed (NoteOff (num % 16))
             |= uint8
+            |. uint8
         else if num // 16 == 9 then
-          succeed (NoteOn (num % 16))
+          succeed (\note vel ->
+              if vel == 0 then
+                NoteOff (num % 16) note
+              else
+                NoteOn (num % 16) note vel
+            )
             |= uint8
             |= uint8
-        else if num // 16 == 12 then
+        else if num // 16 == 0xA then
+          succeed (KeyPressure (num % 16))
+            |= uint8
+            |= uint8
+        else if num // 16 == 0xB then
+          succeed (ControlChange (num % 16))
+            |= uint8
+            |= uint8
+        else if num // 16 == 0xC then
           succeed (ProgramChange (num % 16))
+            |= uint8
+        else if num // 16 == 0xD then
+          succeed (ChannelPressure (num % 16))
+            |= uint8
+        else if num // 16 == 0xE then
+          succeed (\lsb msb -> PitchWheelChange (num % 16) 0) -- TODO
+            |= uint8
             |= uint8
         else if num == 0xFF then
           succeed End
-            |. uint8
-            |. uint8
+            |. equal 0x2F uint8
+            |. equal 0 uint8
         else
-          fail ("unknow data type: " ++ toString num)
+          fail ("unknown data type: " ++ toString num)
       )
 
 

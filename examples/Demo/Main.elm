@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import BinaryDecoder.File as File exposing (File)
 import BinaryDecoder.Byte as Byte exposing (ArrayBuffer)
-import MidiDecoder
+import SmfDecoder
 import Mp3Decoder
 import WaveDecoder
 import PngDecoder
@@ -27,9 +27,14 @@ type alias Model =
   { result : String }
 
 
+type FileType
+  = Png
+  | Smf
+
+
 type Msg
-  = GotFile File
-  | ReadBuffer (Result File.Error ArrayBuffer)
+  = GotFile FileType File
+  | ReadBuffer FileType (Result File.Error ArrayBuffer)
 
 
 init : (Model, Cmd Msg)
@@ -40,17 +45,23 @@ init =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    GotFile file ->
+    GotFile tipe file ->
       ( model
-      , Task.attempt ReadBuffer (File.readFileAsArrayBuffer file)
+      , Task.attempt (ReadBuffer tipe) (File.readFileAsArrayBuffer file)
       )
 
-    ReadBuffer (Ok buf) ->
-      ({ model |
-        result = toString <| Byte.decode PngDecoder.png buf
-      }, Cmd.none)
+    ReadBuffer tipe (Ok buf) ->
+      let
+        result =
+          case tipe of
+            Png -> toString <| Byte.decode PngDecoder.png buf
+            Smf -> toString <| Byte.decode SmfDecoder.smf buf
+      in
+        ({ model |
+          result = result
+        }, Cmd.none)
 
-    ReadBuffer (Err e) ->
+    ReadBuffer _ (Err e) ->
       Debug.crash "failed to read arrayBuffer"
 
 
@@ -62,17 +73,19 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h1 [] [ text "PNG Decoder" ]
-    , fileLoadButton GotFile
+    [ h2 [] [ text "PNG Decoder" ]
+    , fileLoadButton "image/png" (GotFile Png)
+    , h2 [] [ text "MIDI Decoder" ]
+    , fileLoadButton "audio/mid" (GotFile Smf)
     , div [] [ text model.result ]
     ]
 
 
-fileLoadButton : (File -> msg) -> Html msg
-fileLoadButton tagger =
+fileLoadButton : String -> (File -> msg) -> Html msg
+fileLoadButton accept_ tagger =
   input
     [ type_ "file"
-    , accept "image/png"
+    , accept accept_
     , on "change" (File.targetFile tagger)
     ]
     [ text "load" ]

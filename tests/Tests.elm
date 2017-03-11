@@ -13,7 +13,7 @@ import Native.TestData
 import Char
 import Bitwise
 
-import MidiDecoder
+import SmfDecoder
 import WaveDecoder
 import Mp3Decoder
 
@@ -247,10 +247,10 @@ decodeingBits =
 
 decodeMidi : List Test
 decodeMidi =
-  [ test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x7F]) 0x7F MidiDecoder.deltaTime
-  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x00]) 0x80 MidiDecoder.deltaTime
-  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x01]) 0x81 MidiDecoder.deltaTime
-  , test "midi" <| justTry midi MidiDecoder.midi
+  [ test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x7F]) 0x7F SmfDecoder.deltaTime
+  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x00]) 0x80 SmfDecoder.deltaTime
+  , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x01]) 0x81 SmfDecoder.deltaTime
+  , test "midi" <| justTry midi SmfDecoder.midi
   ]
 
 

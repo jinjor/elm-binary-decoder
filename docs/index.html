@@ -9125,24 +9125,24 @@ var _jinjor$binary_decoder$BinaryDecoder_File$targetFiles = function (tagger) {
 var _jinjor$binary_decoder$BinaryDecoder_File$FileList = {ctor: 'FileList'};
 var _jinjor$binary_decoder$BinaryDecoder_File$File = {ctor: 'File'};
 var _jinjor$binary_decoder$BinaryDecoder_File$Error = {ctor: 'Error'};
-var _jinjor$binary_decoder$MidiDecoder$deltaTimeHelp = function (prev) {
+var _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp = function (prev) {
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
 		function (i) {
-			return _elm_lang$core$Native_Utils.eq(128 & i, 128) ? _jinjor$binary_decoder$MidiDecoder$deltaTimeHelp((prev << 7) + (128 ^ i)) : _jinjor$binary_decoder$BinaryDecoder$succeed((prev << 7) + i);
+			return _elm_lang$core$Native_Utils.eq(128 & i, 128) ? _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp((prev << 7) + (128 ^ i)) : _jinjor$binary_decoder$BinaryDecoder$succeed((prev << 7) + i);
 		});
 };
-var _jinjor$binary_decoder$MidiDecoder$deltaTime = _jinjor$binary_decoder$MidiDecoder$deltaTimeHelp(0);
-var _jinjor$binary_decoder$MidiDecoder$Midi = F2(
+var _jinjor$binary_decoder$SmfDecoder$deltaTime = _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp(0);
+var _jinjor$binary_decoder$SmfDecoder$Smf = F2(
 	function (a, b) {
-		return {header: a, body: b};
+		return {header: a, tracks: b};
 	});
-var _jinjor$binary_decoder$MidiDecoder$Header = F4(
+var _jinjor$binary_decoder$SmfDecoder$Header = F4(
 	function (a, b, c, d) {
 		return {length: a, format: b, trackNumber: c, timeBase: d};
 	});
-var _jinjor$binary_decoder$MidiDecoder$header = A2(
+var _jinjor$binary_decoder$SmfDecoder$header = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 	A2(
 		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9152,30 +9152,46 @@ var _jinjor$binary_decoder$MidiDecoder$header = A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 				A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$MidiDecoder$Header),
+					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$Header),
 					_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('MThd')),
 				_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
 			_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
 	_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE);
-var _jinjor$binary_decoder$MidiDecoder$Body = F2(
+var _jinjor$binary_decoder$SmfDecoder$Track = F2(
 	function (a, b) {
-		return {length: a, dataList: b};
+		return {length: a, values: b};
 	});
-var _jinjor$binary_decoder$MidiDecoder$End = {ctor: 'End'};
-var _jinjor$binary_decoder$MidiDecoder$ProgramChange = F2(
+var _jinjor$binary_decoder$SmfDecoder$End = {ctor: 'End'};
+var _jinjor$binary_decoder$SmfDecoder$PitchWheelChange = F2(
+	function (a, b) {
+		return {ctor: 'PitchWheelChange', _0: a, _1: b};
+	});
+var _jinjor$binary_decoder$SmfDecoder$ChannelPressure = F2(
+	function (a, b) {
+		return {ctor: 'ChannelPressure', _0: a, _1: b};
+	});
+var _jinjor$binary_decoder$SmfDecoder$ProgramChange = F2(
 	function (a, b) {
 		return {ctor: 'ProgramChange', _0: a, _1: b};
 	});
-var _jinjor$binary_decoder$MidiDecoder$NoteOff = F2(
+var _jinjor$binary_decoder$SmfDecoder$ControlChange = F3(
+	function (a, b, c) {
+		return {ctor: 'ControlChange', _0: a, _1: b, _2: c};
+	});
+var _jinjor$binary_decoder$SmfDecoder$KeyPressure = F3(
+	function (a, b, c) {
+		return {ctor: 'KeyPressure', _0: a, _1: b, _2: c};
+	});
+var _jinjor$binary_decoder$SmfDecoder$NoteOff = F2(
 	function (a, b) {
 		return {ctor: 'NoteOff', _0: a, _1: b};
 	});
-var _jinjor$binary_decoder$MidiDecoder$NoteOn = F3(
+var _jinjor$binary_decoder$SmfDecoder$NoteOn = F3(
 	function (a, b, c) {
 		return {ctor: 'NoteOn', _0: a, _1: b, _2: c};
 	});
-var _jinjor$binary_decoder$MidiDecoder$data = A2(
+var _jinjor$binary_decoder$SmfDecoder$data = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 	A2(
 		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9184,80 +9200,129 @@ var _jinjor$binary_decoder$MidiDecoder$data = A2(
 				function (v0, v1) {
 					return {ctor: '_Tuple2', _0: v0, _1: v1};
 				})),
-		_jinjor$binary_decoder$MidiDecoder$deltaTime),
+		_jinjor$binary_decoder$SmfDecoder$deltaTime),
 	A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
 		function (num) {
 			return _elm_lang$core$Native_Utils.eq((num / 16) | 0, 8) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$MidiDecoder$NoteOff(
-						A2(_elm_lang$core$Basics_ops['%'], num, 16))),
+				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(
+						_jinjor$binary_decoder$SmfDecoder$NoteOff(
+							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
+					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 9) ? A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 				A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$MidiDecoder$NoteOn(
+						F2(
+							function (note, vel) {
+								return _elm_lang$core$Native_Utils.eq(vel, 0) ? A2(
+									_jinjor$binary_decoder$SmfDecoder$NoteOff,
+									A2(_elm_lang$core$Basics_ops['%'], num, 16),
+									note) : A3(
+									_jinjor$binary_decoder$SmfDecoder$NoteOn,
+									A2(_elm_lang$core$Basics_ops['%'], num, 16),
+									note,
+									vel);
+							})),
+					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 10) ? A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(
+						_jinjor$binary_decoder$SmfDecoder$KeyPressure(
+							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
+					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 11) ? A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(
+						_jinjor$binary_decoder$SmfDecoder$ControlChange(
 							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
 					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 12) ? A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$MidiDecoder$ProgramChange(
+					_jinjor$binary_decoder$SmfDecoder$ProgramChange(
 						A2(_elm_lang$core$Basics_ops['%'], num, 16))),
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 13) ? A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+				_jinjor$binary_decoder$BinaryDecoder$succeed(
+					_jinjor$binary_decoder$SmfDecoder$ChannelPressure(
+						A2(_elm_lang$core$Basics_ops['%'], num, 16))),
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 14) ? A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+				A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(
+						F2(
+							function (lsb, msb) {
+								return A2(
+									_jinjor$binary_decoder$SmfDecoder$PitchWheelChange,
+									A2(_elm_lang$core$Basics_ops['%'], num, 16),
+									0);
+							})),
+					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq(num, 255) ? A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$MidiDecoder$End),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : _jinjor$binary_decoder$BinaryDecoder$fail(
+					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End),
+					A2(_jinjor$binary_decoder$BinaryDecoder$equal, 47, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
+				A2(_jinjor$binary_decoder$BinaryDecoder$equal, 0, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)) : _jinjor$binary_decoder$BinaryDecoder$fail(
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					'unknow data type: ',
-					_elm_lang$core$Basics$toString(num))))));
+					'unknown data type: ',
+					_elm_lang$core$Basics$toString(num))))))))));
 		}));
-var _jinjor$binary_decoder$MidiDecoder$dataListHelp = function (prev) {
+var _jinjor$binary_decoder$SmfDecoder$dataListHelp = function (prev) {
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$MidiDecoder$data,
+		_jinjor$binary_decoder$SmfDecoder$data,
 		function (d) {
 			var _p0 = d;
 			if ((_p0.ctor === '_Tuple2') && (_p0._1.ctor === 'End')) {
 				return _jinjor$binary_decoder$BinaryDecoder$succeed(
 					{ctor: '::', _0: d, _1: prev});
 			} else {
-				return _jinjor$binary_decoder$MidiDecoder$dataListHelp(
+				return _jinjor$binary_decoder$SmfDecoder$dataListHelp(
 					{ctor: '::', _0: d, _1: prev});
 			}
 		});
 };
-var _jinjor$binary_decoder$MidiDecoder$dataList = A2(
+var _jinjor$binary_decoder$SmfDecoder$dataList = A2(
 	_jinjor$binary_decoder$BinaryDecoder$map,
 	_elm_lang$core$List$reverse,
-	_jinjor$binary_decoder$MidiDecoder$dataListHelp(
+	_jinjor$binary_decoder$SmfDecoder$dataListHelp(
 		{ctor: '[]'}));
-var _jinjor$binary_decoder$MidiDecoder$body = A2(
+var _jinjor$binary_decoder$SmfDecoder$track = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 	A2(
 		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 		A2(
 			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$MidiDecoder$Body),
+			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$Track),
 			_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('MTrk')),
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
-	_jinjor$binary_decoder$MidiDecoder$dataList);
-var _jinjor$binary_decoder$MidiDecoder$midi = A2(
+	_jinjor$binary_decoder$SmfDecoder$dataList);
+var _jinjor$binary_decoder$SmfDecoder$smf = A2(
 	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$MidiDecoder$header,
+	_jinjor$binary_decoder$SmfDecoder$header,
 	function (header) {
 		return A2(
 			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 			_jinjor$binary_decoder$BinaryDecoder$succeed(
-				_jinjor$binary_decoder$MidiDecoder$Midi(header)),
-			A2(_jinjor$binary_decoder$BinaryDecoder$from, header.length + 8, _jinjor$binary_decoder$MidiDecoder$body));
+				_jinjor$binary_decoder$SmfDecoder$Smf(header)),
+			A2(
+				_jinjor$binary_decoder$BinaryDecoder$from,
+				header.length + 8,
+				A2(_jinjor$binary_decoder$BinaryDecoder$repeat, header.trackNumber, _jinjor$binary_decoder$SmfDecoder$track)));
 	});
 var _jinjor$binary_decoder$Mp3Decoder$syncSafeInt = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -10581,31 +10646,32 @@ var _jinjor$binary_decoder$PngDecoder$png = A2(
 			})),
 	_jinjor$binary_decoder$PngDecoder$chainChunks(
 		_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$PngDecoder$init)));
-var _jinjor$binary_decoder$Main$fileLoadButton = function (tagger) {
-	return A2(
-		_elm_lang$html$Html$input,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$type_('file'),
-			_1: {
+var _jinjor$binary_decoder$Main$fileLoadButton = F2(
+	function (accept_, tagger) {
+		return A2(
+			_elm_lang$html$Html$input,
+			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$accept('image/png'),
+				_0: _elm_lang$html$Html_Attributes$type_('file'),
 				_1: {
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html_Events$on,
-						'change',
-						_jinjor$binary_decoder$BinaryDecoder_File$targetFile(tagger)),
-					_1: {ctor: '[]'}
+					_0: _elm_lang$html$Html_Attributes$accept(accept_),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html_Events$on,
+							'change',
+							_jinjor$binary_decoder$BinaryDecoder_File$targetFile(tagger)),
+						_1: {ctor: '[]'}
+					}
 				}
-			}
-		},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text('load'),
-			_1: {ctor: '[]'}
-		});
-};
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('load'),
+				_1: {ctor: '[]'}
+			});
+	});
 var _jinjor$binary_decoder$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
@@ -10617,9 +10683,12 @@ var _jinjor$binary_decoder$Main$init = {
 	_0: _jinjor$binary_decoder$Main$Model(''),
 	_1: _elm_lang$core$Platform_Cmd$none
 };
-var _jinjor$binary_decoder$Main$ReadBuffer = function (a) {
-	return {ctor: 'ReadBuffer', _0: a};
-};
+var _jinjor$binary_decoder$Main$Smf = {ctor: 'Smf'};
+var _jinjor$binary_decoder$Main$Png = {ctor: 'Png'};
+var _jinjor$binary_decoder$Main$ReadBuffer = F2(
+	function (a, b) {
+		return {ctor: 'ReadBuffer', _0: a, _1: b};
+	});
 var _jinjor$binary_decoder$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
@@ -10629,35 +10698,44 @@ var _jinjor$binary_decoder$Main$update = F2(
 				_0: model,
 				_1: A2(
 					_elm_lang$core$Task$attempt,
-					_jinjor$binary_decoder$Main$ReadBuffer,
-					_jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer(_p0._0))
+					_jinjor$binary_decoder$Main$ReadBuffer(_p0._0),
+					_jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer(_p0._1))
 			};
 		} else {
-			if (_p0._0.ctor === 'Ok') {
+			if (_p0._1.ctor === 'Ok') {
+				var _p2 = _p0._1._0;
+				var result = function () {
+					var _p1 = _p0._0;
+					if (_p1.ctor === 'Png') {
+						return _elm_lang$core$Basics$toString(
+							A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$PngDecoder$png, _p2));
+					} else {
+						return _elm_lang$core$Basics$toString(
+							A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$SmfDecoder$smf, _p2));
+					}
+				}();
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{
-							result: _elm_lang$core$Basics$toString(
-								A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$PngDecoder$png, _p0._0._0))
-						}),
+						{result: result}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			} else {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Main',
 					{
-						start: {line: 42, column: 3},
-						end: {line: 54, column: 47}
+						start: {line: 47, column: 3},
+						end: {line: 65, column: 47}
 					},
 					_p0)('failed to read arrayBuffer');
 			}
 		}
 	});
-var _jinjor$binary_decoder$Main$GotFile = function (a) {
-	return {ctor: 'GotFile', _0: a};
-};
+var _jinjor$binary_decoder$Main$GotFile = F2(
+	function (a, b) {
+		return {ctor: 'GotFile', _0: a, _1: b};
+	});
 var _jinjor$binary_decoder$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -10665,7 +10743,7 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$h1,
+				_elm_lang$html$Html$h2,
 				{ctor: '[]'},
 				{
 					ctor: '::',
@@ -10674,18 +10752,39 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 				}),
 			_1: {
 				ctor: '::',
-				_0: _jinjor$binary_decoder$Main$fileLoadButton(_jinjor$binary_decoder$Main$GotFile),
+				_0: A2(
+					_jinjor$binary_decoder$Main$fileLoadButton,
+					'image/png',
+					_jinjor$binary_decoder$Main$GotFile(_jinjor$binary_decoder$Main$Png)),
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
+						_elm_lang$html$Html$h2,
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(model.result),
+							_0: _elm_lang$html$Html$text('MIDI Decoder'),
 							_1: {ctor: '[]'}
 						}),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_jinjor$binary_decoder$Main$fileLoadButton,
+							'audio/mid',
+							_jinjor$binary_decoder$Main$GotFile(_jinjor$binary_decoder$Main$Smf)),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(model.result),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
 				}
 			}
 		});
