@@ -57,9 +57,9 @@ type alias IhdrChunk =
   , height : Int
   , bitDepth : Int
   , colorType : Int
-  , compress : Int
-  , filter : Int
-  , interlace : Int
+  , compressionMethod : Int
+  , filterMethod : Int
+  , interlaceMethod : Int
   }
 
 
@@ -103,16 +103,16 @@ type alias TextChunk =
 
 type alias ZtxtChunk =
   { keyWord : String
-  , compressType : Int
+  , compressionMethod : Int
   }
 
 
 type alias ItxtChunk =
   { keyword : String
-  , compressed : Bool
-  , complessType : Int
-  , langTag : String
-  , translationKeyword : String
+  , compressionFlag : Bool
+  , complessionMethod : Int
+  , languageTag : String
+  , translatedKeyword : String
   , text : String
   }
 
@@ -124,8 +124,8 @@ type BkgdChunk
 
 
 type alias PhysChunk =
-  { pixelXperUnit : Int
-  , pixelYperUnit : Int
+  { pixelsPerUnitXAxis : Int
+  , pixelsPerUnitYAxis : Int
   , isMeter : Bool
   }
 
@@ -162,7 +162,7 @@ type alias HistChunk =
 type alias TimeChunk =
   { year : Int
   , month : Int
-  , date : Int
+  , day : Int
   , hour : Int
   , minute : Int
   , second : Int
@@ -550,32 +550,55 @@ otherChunk id =
 
 TODO: Valdation is not implemented.
 
-Each chunk's right position is like below.
+Following note is vorrowed from
+http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
 
-A: PLTE ~ IDAT
-B: ~ PLTE IDAT
-C: IHDR ~ IEND
-D: ~ IDAT
 
-tRNS: A
-gAMA: B
-cHRM: B
-sRGB: B
-iCCP: B
-tEXT: C
-bKGD: A
-pHYs: D
-sBIT: B
-sPLT: D
-hIST: A if colorType == 3
-tIME: C
----
-fRAc: C
-gIFg: C
-gIFt: C
-gIFx: C
-oFFs: D
-pCAL: D
-sCAL: D
+4.3. Summary of standard chunks
+
+   Critical chunks (must appear in this order, except PLTE
+                    is optional):
+
+           Name  Multiple  Ordering constraints
+                   OK?
+
+           IHDR    No      Must be first
+           PLTE    No      Before IDAT
+           IDAT    Yes     Multiple IDATs must be consecutive
+           IEND    No      Must be last
+
+   Ancillary chunks (need not appear in this order):
+
+           Name  Multiple  Ordering constraints
+                   OK?
+
+           cHRM    No      Before PLTE and IDAT
+           gAMA    No      Before PLTE and IDAT
+           iCCP    No      Before PLTE and IDAT
+           sBIT    No      Before PLTE and IDAT
+           sRGB    No      Before PLTE and IDAT
+           bKGD    No      After PLTE; before IDAT
+           hIST    No      After PLTE; before IDAT
+           tRNS    No      After PLTE; before IDAT
+           pHYs    No      Before IDAT
+           sPLT    Yes     Before IDAT
+           tIME    No      None
+           iTXt    Yes     None
+           tEXt    Yes     None
+           zTXt    Yes     None
+
+Standard keywords for text chunks:
+
+   Title            Short (one line) title or caption for image
+   Author           Name of image's creator
+   Description      Description of image (possibly long)
+   Copyright        Copyright notice
+   Creation Time    Time of original image creation
+   Software         Software used to create the image
+   Disclaimer       Legal disclaimer
+   Warning          Warning of nature of content
+   Source           Device used to create the image
+   Comment          Miscellaneous comment; conversion from
+                    GIF comment
 
 -}

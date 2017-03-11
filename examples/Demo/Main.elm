@@ -62,7 +62,8 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ fileLoadButton GotFile
+    [ h1 [] [ text "PNG Decoder" ]
+    , fileLoadButton GotFile
     , div [] [ text model.result ]
     ]
 
@@ -71,6 +72,7 @@ fileLoadButton : (File -> msg) -> Html msg
 fileLoadButton tagger =
   input
     [ type_ "file"
+    , accept "image/png"
     , on "change" (File.targetFile tagger)
     ]
     [ text "load" ]

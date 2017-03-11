@@ -9740,7 +9740,7 @@ var _jinjor$binary_decoder$PngDecoder$Png = function (a) {
 };
 var _jinjor$binary_decoder$PngDecoder$IhdrChunk = F7(
 	function (a, b, c, d, e, f, g) {
-		return {width: a, height: b, bitDepth: c, colorType: d, compress: e, filter: f, interlace: g};
+		return {width: a, height: b, bitDepth: c, colorType: d, compressionMethod: e, filterMethod: f, interlaceMethod: g};
 	});
 var _jinjor$binary_decoder$PngDecoder$ihdrChunk = {
 	id: 'IHDR',
@@ -9954,7 +9954,7 @@ var _jinjor$binary_decoder$PngDecoder$textChunk = {
 };
 var _jinjor$binary_decoder$PngDecoder$ZtxtChunk = F2(
 	function (a, b) {
-		return {keyWord: a, compressType: b};
+		return {keyWord: a, compressionMethod: b};
 	});
 var _jinjor$binary_decoder$PngDecoder$ztxtChunk = {
 	id: 'zTXt',
@@ -9987,7 +9987,7 @@ var _jinjor$binary_decoder$PngDecoder$ztxtChunk = {
 };
 var _jinjor$binary_decoder$PngDecoder$ItxtChunk = F6(
 	function (a, b, c, d, e, f) {
-		return {keyword: a, compressed: b, complessType: c, langTag: d, translationKeyword: e, text: f};
+		return {keyword: a, compressionFlag: b, complessionMethod: c, languageTag: d, translatedKeyword: e, text: f};
 	});
 var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
 	id: 'iTXt',
@@ -10035,7 +10035,7 @@ var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
 };
 var _jinjor$binary_decoder$PngDecoder$PhysChunk = F3(
 	function (a, b, c) {
-		return {pixelXperUnit: a, pixelYperUnit: b, isMeter: c};
+		return {pixelsPerUnitXAxis: a, pixelsPerUnitYAxis: b, isMeter: c};
 	});
 var _jinjor$binary_decoder$PngDecoder$physChunk = {
 	id: 'pHYs',
@@ -10159,7 +10159,7 @@ var _jinjor$binary_decoder$PngDecoder$histChunk = {
 };
 var _jinjor$binary_decoder$PngDecoder$TimeChunk = F6(
 	function (a, b, c, d, e, f) {
-		return {year: a, month: b, date: c, hour: d, minute: e, second: f};
+		return {year: a, month: b, day: c, hour: d, minute: e, second: f};
 	});
 var _jinjor$binary_decoder$PngDecoder$timeChunk = {
 	id: 'tIME',
@@ -10589,11 +10589,15 @@ var _jinjor$binary_decoder$Main$fileLoadButton = function (tagger) {
 			_0: _elm_lang$html$Html_Attributes$type_('file'),
 			_1: {
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html_Events$on,
-					'change',
-					_jinjor$binary_decoder$BinaryDecoder_File$targetFile(tagger)),
-				_1: {ctor: '[]'}
+				_0: _elm_lang$html$Html_Attributes$accept('image/png'),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html_Events$on,
+						'change',
+						_jinjor$binary_decoder$BinaryDecoder_File$targetFile(tagger)),
+					_1: {ctor: '[]'}
+				}
 			}
 		},
 		{
@@ -10660,18 +10664,29 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 		{ctor: '[]'},
 		{
 			ctor: '::',
-			_0: _jinjor$binary_decoder$Main$fileLoadButton(_jinjor$binary_decoder$Main$GotFile),
+			_0: A2(
+				_elm_lang$html$Html$h1,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('PNG Decoder'),
+					_1: {ctor: '[]'}
+				}),
 			_1: {
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(model.result),
-						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
+				_0: _jinjor$binary_decoder$Main$fileLoadButton(_jinjor$binary_decoder$Main$GotFile),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(model.result),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };
