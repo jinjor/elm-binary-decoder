@@ -250,7 +250,7 @@ decodeMidi =
   [ test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x7F]) 0x7F SmfDecoder.deltaTime
   , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x00]) 0x80 SmfDecoder.deltaTime
   , test "deltaTime" <| testSucceed1 (Native.TestData.fromList [0x81, 0x01]) 0x81 SmfDecoder.deltaTime
-  , test "midi" <| justTry midi SmfDecoder.midi
+  , test "midi" <| justTry midi SmfDecoder.smf
   ]
 
 
