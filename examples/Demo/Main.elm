@@ -4,11 +4,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import BinaryDecoder.File as File exposing (File)
-import BinaryDecoder.Byte as Byte exposing (ArrayBuffer)
+import BinaryDecoder.Byte as Byte exposing (ArrayBuffer, Error)
 import SmfDecoder
 import Mp3Decoder
 import WaveDecoder
 import PngDecoder
+import ErrorFormatter
 import Json.Decode as Decode
 import Task
 
@@ -24,7 +25,7 @@ main =
 
 
 type alias Model =
-  { result : String }
+  { result : Result (Error, ArrayBuffer) String }
 
 
 type FileType
@@ -39,7 +40,7 @@ type Msg
 
 init : (Model, Cmd Msg)
 init =
-  (Model "", Cmd.none)
+  (Model (Ok ""), Cmd.none)
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -54,11 +55,12 @@ update msg model =
       let
         result =
           case tipe of
-            Png -> toString <| Byte.decode PngDecoder.png buf
-            Smf -> toString <| Byte.decode SmfDecoder.smf buf
+            Png -> Result.map toString <| Byte.decode PngDecoder.png buf
+            Smf -> Result.map toString <| Byte.decode SmfDecoder.smf buf
       in
         ({ model |
-          result = result
+          result =
+            result |> Result.mapError (\e -> (e, buf))
         }, Cmd.none)
 
     ReadBuffer _ (Err e) ->
@@ -77,7 +79,9 @@ view model =
     , fileLoadButton "image/png" (GotFile Png)
     , h2 [] [ text "MIDI Decoder" ]
     , fileLoadButton "audio/mid" (GotFile Smf)
-    , div [] [ text model.result ]
+    , case model.result of
+        Ok s -> div [] [ text s ]
+        Err (e, buf) -> ErrorFormatter.print buf e
     ]
 
 

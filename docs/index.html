@@ -9125,6 +9125,404 @@ var _jinjor$binary_decoder$BinaryDecoder_File$targetFiles = function (tagger) {
 var _jinjor$binary_decoder$BinaryDecoder_File$FileList = {ctor: 'FileList'};
 var _jinjor$binary_decoder$BinaryDecoder_File$File = {ctor: 'File'};
 var _jinjor$binary_decoder$BinaryDecoder_File$Error = {ctor: 'Error'};
+var _rtfeldman$hex$Hex$toString = function (num) {
+	return _elm_lang$core$String$fromList(
+		(_elm_lang$core$Native_Utils.cmp(num, 0) < 0) ? {
+			ctor: '::',
+			_0: _elm_lang$core$Native_Utils.chr('-'),
+			_1: A2(
+				_rtfeldman$hex$Hex$unsafePositiveToDigits,
+				{ctor: '[]'},
+				_elm_lang$core$Basics$negate(num))
+		} : A2(
+			_rtfeldman$hex$Hex$unsafePositiveToDigits,
+			{ctor: '[]'},
+			num));
+};
+var _rtfeldman$hex$Hex$unsafePositiveToDigits = F2(
+	function (digits, num) {
+		unsafePositiveToDigits:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(num, 16) < 0) {
+				return {
+					ctor: '::',
+					_0: _rtfeldman$hex$Hex$unsafeToDigit(num),
+					_1: digits
+				};
+			} else {
+				var _v0 = {
+					ctor: '::',
+					_0: _rtfeldman$hex$Hex$unsafeToDigit(
+						A2(_elm_lang$core$Basics_ops['%'], num, 16)),
+					_1: digits
+				},
+					_v1 = (num / 16) | 0;
+				digits = _v0;
+				num = _v1;
+				continue unsafePositiveToDigits;
+			}
+		}
+	});
+var _rtfeldman$hex$Hex$unsafeToDigit = function (num) {
+	var _p0 = num;
+	switch (_p0) {
+		case 0:
+			return _elm_lang$core$Native_Utils.chr('0');
+		case 1:
+			return _elm_lang$core$Native_Utils.chr('1');
+		case 2:
+			return _elm_lang$core$Native_Utils.chr('2');
+		case 3:
+			return _elm_lang$core$Native_Utils.chr('3');
+		case 4:
+			return _elm_lang$core$Native_Utils.chr('4');
+		case 5:
+			return _elm_lang$core$Native_Utils.chr('5');
+		case 6:
+			return _elm_lang$core$Native_Utils.chr('6');
+		case 7:
+			return _elm_lang$core$Native_Utils.chr('7');
+		case 8:
+			return _elm_lang$core$Native_Utils.chr('8');
+		case 9:
+			return _elm_lang$core$Native_Utils.chr('9');
+		case 10:
+			return _elm_lang$core$Native_Utils.chr('a');
+		case 11:
+			return _elm_lang$core$Native_Utils.chr('b');
+		case 12:
+			return _elm_lang$core$Native_Utils.chr('c');
+		case 13:
+			return _elm_lang$core$Native_Utils.chr('d');
+		case 14:
+			return _elm_lang$core$Native_Utils.chr('e');
+		case 15:
+			return _elm_lang$core$Native_Utils.chr('f');
+		default:
+			return _elm_lang$core$Native_Utils.crashCase(
+				'Hex',
+				{
+					start: {line: 138, column: 5},
+					end: {line: 188, column: 84}
+				},
+				_p0)(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'Tried to convert ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_rtfeldman$hex$Hex$toString(num),
+						' to hexadecimal.')));
+	}
+};
+var _rtfeldman$hex$Hex$fromStringHelp = F3(
+	function (position, chars, accumulated) {
+		var _p2 = chars;
+		if (_p2.ctor === '[]') {
+			return _elm_lang$core$Result$Ok(accumulated);
+		} else {
+			var recurse = function (additional) {
+				return A3(
+					_rtfeldman$hex$Hex$fromStringHelp,
+					position - 1,
+					_p2._1,
+					accumulated + (additional * Math.pow(16, position)));
+			};
+			var _p3 = _p2._0;
+			switch (_p3.valueOf()) {
+				case '0':
+					return recurse(0);
+				case '1':
+					return recurse(1);
+				case '2':
+					return recurse(2);
+				case '3':
+					return recurse(3);
+				case '4':
+					return recurse(4);
+				case '5':
+					return recurse(5);
+				case '6':
+					return recurse(6);
+				case '7':
+					return recurse(7);
+				case '8':
+					return recurse(8);
+				case '9':
+					return recurse(9);
+				case 'a':
+					return recurse(10);
+				case 'b':
+					return recurse(11);
+				case 'c':
+					return recurse(12);
+				case 'd':
+					return recurse(13);
+				case 'e':
+					return recurse(14);
+				case 'f':
+					return recurse(15);
+				default:
+					return _elm_lang$core$Result$Err(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_elm_lang$core$Basics$toString(_p3),
+							' is not a valid hexadecimal character.'));
+			}
+		}
+	});
+var _rtfeldman$hex$Hex$fromString = function (str) {
+	if (_elm_lang$core$String$isEmpty(str)) {
+		return _elm_lang$core$Result$Err('Empty strings are not valid hexadecimal strings.');
+	} else {
+		var formatError = function (err) {
+			return A2(
+				_elm_lang$core$String$join,
+				' ',
+				{
+					ctor: '::',
+					_0: _elm_lang$core$Basics$toString(str),
+					_1: {
+						ctor: '::',
+						_0: 'is not a valid hexadecimal string because',
+						_1: {
+							ctor: '::',
+							_0: err,
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		};
+		var result = function () {
+			if (A2(_elm_lang$core$String$startsWith, '-', str)) {
+				var list = A2(
+					_elm_lang$core$Maybe$withDefault,
+					{ctor: '[]'},
+					_elm_lang$core$List$tail(
+						_elm_lang$core$String$toList(str)));
+				return A2(
+					_elm_lang$core$Result$map,
+					_elm_lang$core$Basics$negate,
+					A3(
+						_rtfeldman$hex$Hex$fromStringHelp,
+						_elm_lang$core$List$length(list) - 1,
+						list,
+						0));
+			} else {
+				return A3(
+					_rtfeldman$hex$Hex$fromStringHelp,
+					_elm_lang$core$String$length(str) - 1,
+					_elm_lang$core$String$toList(str),
+					0);
+			}
+		}();
+		return A2(_elm_lang$core$Result$mapError, formatError, result);
+	}
+};
+var _jinjor$binary_decoder$ErrorFormatter$cell = F2(
+	function (strong, value) {
+		return A2(
+			_elm_lang$html$Html$span,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					strong ? {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'color', _1: 'red'},
+						_1: {ctor: '[]'}
+					} : {ctor: '[]'}),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					A3(
+						_elm_lang$core$String$padLeft,
+						2,
+						_elm_lang$core$Native_Utils.chr('0'),
+						_rtfeldman$hex$Hex$toString(value))),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(' '),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _jinjor$binary_decoder$ErrorFormatter$lastRow = F2(
+	function (numbers, value) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			function (normalCells) {
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					normalCells,
+					{
+						ctor: '::',
+						_0: A2(_jinjor$binary_decoder$ErrorFormatter$cell, true, value),
+						_1: {ctor: '[]'}
+					});
+			}(
+				A2(
+					_elm_lang$core$List$map,
+					_jinjor$binary_decoder$ErrorFormatter$cell(false),
+					numbers)));
+	});
+var _jinjor$binary_decoder$ErrorFormatter$row = function (numbers) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$List$map,
+			_jinjor$binary_decoder$ErrorFormatter$cell(false),
+			numbers));
+};
+var _jinjor$binary_decoder$ErrorFormatter$numbersStyle = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'padding-left', _1: '40px'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '10px'},
+		_1: {ctor: '[]'}
+	}
+};
+var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'padding', _1: '20px'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'margin', _1: '20px'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'background-color', _1: '#ddd'},
+				_1: {ctor: '[]'}
+			}
+		}
+	}
+};
+var _jinjor$binary_decoder$ErrorFormatter$toHtml = F3(
+	function (message, before, value) {
+		var _p0 = A3(
+			_elm_lang$core$List$foldl,
+			F2(
+				function (value, _p1) {
+					var _p2 = _p1;
+					var _p5 = _p2._1;
+					var _p4 = _p2._2;
+					var _p3 = _p2._0;
+					return _elm_lang$core$Native_Utils.eq(
+						A2(_elm_lang$core$Basics_ops['%'], _p3, 16),
+						15) ? {
+						ctor: '_Tuple3',
+						_0: _p3 + 1,
+						_1: {ctor: '[]'},
+						_2: {
+							ctor: '::',
+							_0: {ctor: '::', _0: value, _1: _p5},
+							_1: _p4
+						}
+					} : {
+						ctor: '_Tuple3',
+						_0: _p3 + 1,
+						_1: {ctor: '::', _0: value, _1: _p5},
+						_2: _p4
+					};
+				}),
+			{
+				ctor: '_Tuple3',
+				_0: 0,
+				_1: {ctor: '[]'},
+				_2: {ctor: '[]'}
+			},
+			before);
+		var last_ = _p0._1;
+		var init_ = _p0._2;
+		var init = _elm_lang$core$List$reverse(
+			A2(_elm_lang$core$List$map, _elm_lang$core$List$reverse, init_));
+		var last = _elm_lang$core$List$reverse(last_);
+		return A2(
+			_elm_lang$html$Html$pre,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$preStyle),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$numbersStyle),
+						_1: {ctor: '[]'}
+					},
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A2(_elm_lang$core$List$map, _jinjor$binary_decoder$ErrorFormatter$row, init),
+						{
+							ctor: '::',
+							_0: A2(_jinjor$binary_decoder$ErrorFormatter$lastRow, last, value),
+							_1: {ctor: '[]'}
+						})),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(message),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _jinjor$binary_decoder$ErrorFormatter$startPosition = function (pos) {
+	var start = A2(_elm_lang$core$Basics$max, 0, pos - 64);
+	return start - A2(_elm_lang$core$Basics_ops['%'], start, 16);
+};
+var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
+	var start = _jinjor$binary_decoder$ErrorFormatter$startPosition(error.position);
+	return A2(
+		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+		A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+				_jinjor$binary_decoder$BinaryDecoder$succeed(
+					_jinjor$binary_decoder$ErrorFormatter$toHtml(error.message)),
+				_jinjor$binary_decoder$BinaryDecoder$goTo(start)),
+			A2(_jinjor$binary_decoder$BinaryDecoder$repeat, error.position - start, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
+};
+var _jinjor$binary_decoder$ErrorFormatter$print = F2(
+	function (buf, error) {
+		var _p6 = A2(
+			_jinjor$binary_decoder$BinaryDecoder_Byte$decode,
+			_jinjor$binary_decoder$ErrorFormatter$err(error),
+			buf);
+		if (_p6.ctor === 'Ok') {
+			return _p6._0;
+		} else {
+			var _p7 = A2(_elm_lang$core$Debug$log, 'print', _p6._0);
+			return A2(
+				_elm_lang$html$Html$div,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(error.message),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(' (print failed)'),
+						_1: {ctor: '[]'}
+					}
+				});
+		}
+	});
 var _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp = function (prev) {
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
@@ -10680,7 +11078,8 @@ var _jinjor$binary_decoder$Main$Model = function (a) {
 };
 var _jinjor$binary_decoder$Main$init = {
 	ctor: '_Tuple2',
-	_0: _jinjor$binary_decoder$Main$Model(''),
+	_0: _jinjor$binary_decoder$Main$Model(
+		_elm_lang$core$Result$Ok('')),
 	_1: _elm_lang$core$Platform_Cmd$none
 };
 var _jinjor$binary_decoder$Main$Smf = {ctor: 'Smf'};
@@ -10707,10 +11106,14 @@ var _jinjor$binary_decoder$Main$update = F2(
 				var result = function () {
 					var _p1 = _p0._0;
 					if (_p1.ctor === 'Png') {
-						return _elm_lang$core$Basics$toString(
+						return A2(
+							_elm_lang$core$Result$map,
+							_elm_lang$core$Basics$toString,
 							A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$PngDecoder$png, _p2));
 					} else {
-						return _elm_lang$core$Basics$toString(
+						return A2(
+							_elm_lang$core$Result$map,
+							_elm_lang$core$Basics$toString,
 							A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$SmfDecoder$smf, _p2));
 					}
 				}();
@@ -10718,15 +11121,22 @@ var _jinjor$binary_decoder$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{result: result}),
+						{
+							result: A2(
+								_elm_lang$core$Result$mapError,
+								function (e) {
+									return {ctor: '_Tuple2', _0: e, _1: _p2};
+								},
+								result)
+						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			} else {
 				return _elm_lang$core$Native_Utils.crashCase(
 					'Main',
 					{
-						start: {line: 47, column: 3},
-						end: {line: 65, column: 47}
+						start: {line: 48, column: 3},
+						end: {line: 67, column: 47}
 					},
 					_p0)('failed to read arrayBuffer');
 			}
@@ -10774,14 +11184,21 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 							_jinjor$binary_decoder$Main$GotFile(_jinjor$binary_decoder$Main$Smf)),
 						_1: {
 							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.result),
-									_1: {ctor: '[]'}
-								}),
+							_0: function () {
+								var _p4 = model.result;
+								if (_p4.ctor === 'Ok') {
+									return A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(_p4._0),
+											_1: {ctor: '[]'}
+										});
+								} else {
+									return A2(_jinjor$binary_decoder$ErrorFormatter$print, _p4._0._1, _p4._0._0);
+								}
+							}(),
 							_1: {ctor: '[]'}
 						}
 					}

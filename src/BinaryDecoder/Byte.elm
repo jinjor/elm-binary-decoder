@@ -1,5 +1,5 @@
 module BinaryDecoder.Byte exposing
-  ( ArrayBuffer, Decoder, decode
+  ( ArrayBuffer, Decoder, Error, decode
   , uint8, uint16BE, uint16LE, uint32BE, uint32LE
   , int8, int16BE, int16LE, int32BE, int32LE
   , bool, char, string, stringUntilNull, symbol, symbolInt, choose, bits
@@ -33,8 +33,13 @@ type alias Context =
 
 
 {-|-}
-type alias Decoder a
-  = GenericDecoder DataView a
+type alias Decoder a =
+  GenericDecoder DataView a
+
+
+{-|-}
+type alias Error =
+  GenericDecoder.Error
 
 
 {-|-}
