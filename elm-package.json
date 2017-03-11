@@ -7,14 +7,15 @@
         "src"
     ],
     "exposed-modules": [
-      "BinaryDecoder",
-      "BinaryDecoder.Byte",
-      "BinaryDecoder.Bit"
+        "BinaryDecoder",
+        "BinaryDecoder.Byte",
+        "BinaryDecoder.Bit"
     ],
     "native-modules": true,
     "dependencies": {
         "elm-lang/core": "5.1.1 <= v < 6.0.0",
-        "elm-lang/html": "2.0.0 <= v < 3.0.0"
+        "elm-lang/html": "2.0.0 <= v < 3.0.0",
+        "rtfeldman/hex": "1.0.0 <= v < 2.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }

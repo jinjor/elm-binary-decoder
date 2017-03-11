@@ -65,83 +65,86 @@ track : Decoder Track
 track =
   succeed Track
     |. symbol "MTrk"
-    |= map (Debug.log "length") uint32BE
+    |= uint32BE
     |= dataList
 
 
 dataList : Decoder (List (Int, Data))
 dataList =
-  dataListHelp []
+  dataListHelp -1 []
     |> map List.reverse
 
 
-dataListHelp : List (Int, Data) -> Decoder (List (Int, Data))
-dataListHelp prev =
-  given data (\d ->
+dataListHelp : Int -> List (Int, Data) -> Decoder (List (Int, Data))
+dataListHelp prevStatus prev =
+  given (deltaTimeAndData prevStatus) (\(prevStatus, d) ->
     case d of
       (_, End) ->
         succeed (d :: prev)
 
       _ ->
-        dataListHelp (d :: prev)
+        dataListHelp prevStatus (d :: prev)
     )
 
 
-data : Decoder (Int, Data)
-data =
-  succeed (,)
-    |= deltaTime
-    |= given uint8 (\num ->
-        if num // 16 < 8 then
-          fail "Running Status not implemented."
-        else if num // 16 == 8 then
-          succeed (NoteOff (num % 16))
-            |= uint8
-            |. uint8
-        else if num // 16 == 9 then
-          succeed (\note vel ->
-              if vel == 0 then
-                NoteOff (num % 16) note
-              else
-                NoteOn (num % 16) note vel
-            )
-            |= uint8
-            |= uint8
-        else if num // 16 == 0xA then
-          succeed (KeyPressure (num % 16))
-            |= uint8
-            |= uint8
-        else if num // 16 == 0xB then
-          succeed (ControlChange (num % 16))
-            |= uint8
-            |= uint8
-        else if num // 16 == 0xC then
-          succeed (ProgramChange (num % 16))
-            |= uint8
-        else if num // 16 == 0xD then
-          succeed (ChannelPressure (num % 16))
-            |= uint8
-        else if num // 16 == 0xE then
-          succeed (\lsb msb -> PitchWheelChange (num % 16) 0) -- TODO
-            |= uint8
-            |= uint8
-        else if num // 16 == 0xF then
-          meta
+deltaTimeAndData : Int -> Decoder (Int, (Int, Data))
+deltaTimeAndData prevStatus =
+  given deltaTime (\dtime ->
+  given uint8 (\status ->
+    if status // 16 < 8 then
+      if prevStatus >= 0 then
+        data prevStatus status
+          |> map (\data -> (prevStatus, (dtime, data)))
+      else
+        fail "Running Status needs previous data."
+    else
+      given uint8 (data status)
+        |> map (\data -> (status, (dtime, data)))
+  ))
+
+
+data : Int -> Int -> Decoder Data
+data status first =
+  if status // 16 == 8 then
+    succeed (NoteOff (status % 16) first)
+      |. skip 1
+  else if status // 16 == 9 then
+    succeed (\vel ->
+        if vel == 0 then
+          NoteOff (status % 16) first
         else
-          fail ("unknown data type: 0x" ++ Hex.toString num)
+          NoteOn (status % 16) first vel
       )
+      |= uint8
+  else if status // 16 == 0xA then
+    succeed (KeyPressure (status % 16) first)
+      |= uint8
+  else if status // 16 == 0xB then
+    succeed (ControlChange (status % 16) first)
+      |= uint8
+  else if status // 16 == 0xC then
+    succeed (ProgramChange (status % 16) first)
+  else if status // 16 == 0xD then
+    succeed (ChannelPressure (status % 16) first)
+  else if status // 16 == 0xE then
+    succeed (\msb -> PitchWheelChange (status % 16) 0) -- TODO
+      |= uint8
+  else if status // 16 == 0xF then
+    meta first
+  else
+    fail ("unknown data type: 0x" ++ Hex.toString status)
 
 
-meta : Decoder Data
-meta =
-  given uint8 (\tipe ->
+meta : Int -> Decoder Data
+meta tipe =
   given uint8 (\length ->
     if tipe == 0x2F then
       succeed End
     else
       succeed (Meta tipe)
         |. skip length
-  ))
+  )
+
 
 
 deltaTime : Decoder Int

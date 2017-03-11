@@ -9553,7 +9553,7 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
 			});
 	});
 var _jinjor$binary_decoder$ErrorFormatter$startPosition = function (pos) {
-	var start = A2(_elm_lang$core$Basics$max, 0, pos - 128);
+	var start = A2(_elm_lang$core$Basics$max, 0, pos - 64);
 	return start - A2(_elm_lang$core$Basics_ops['%'], start, 16);
 };
 var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
@@ -9636,21 +9636,18 @@ var _jinjor$binary_decoder$SmfDecoder$End = {ctor: 'End'};
 var _jinjor$binary_decoder$SmfDecoder$Meta = function (a) {
 	return {ctor: 'Meta', _0: a};
 };
-var _jinjor$binary_decoder$SmfDecoder$meta = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
-	function (tipe) {
-		return A2(
-			_jinjor$binary_decoder$BinaryDecoder$given,
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
-			function (length) {
-				return _elm_lang$core$Native_Utils.eq(tipe, 47) ? _jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End) : A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$SmfDecoder$Meta(tipe)),
-					_jinjor$binary_decoder$BinaryDecoder$skip(length));
-			});
-	});
+var _jinjor$binary_decoder$SmfDecoder$meta = function (tipe) {
+	return A2(
+		_jinjor$binary_decoder$BinaryDecoder$given,
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+		function (length) {
+			return _elm_lang$core$Native_Utils.eq(tipe, 47) ? _jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End) : A2(
+				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+				_jinjor$binary_decoder$BinaryDecoder$succeed(
+					_jinjor$binary_decoder$SmfDecoder$Meta(tipe)),
+				_jinjor$binary_decoder$BinaryDecoder$skip(length));
+		});
+};
 var _jinjor$binary_decoder$SmfDecoder$PitchWheelChange = F2(
 	function (a, b) {
 		return {ctor: 'PitchWheelChange', _0: a, _1: b};
@@ -9679,109 +9676,125 @@ var _jinjor$binary_decoder$SmfDecoder$NoteOn = F3(
 	function (a, b, c) {
 		return {ctor: 'NoteOn', _0: a, _1: b, _2: c};
 	});
-var _jinjor$binary_decoder$SmfDecoder$data = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		_jinjor$binary_decoder$BinaryDecoder$succeed(
-			F2(
-				function (v0, v1) {
-					return {ctor: '_Tuple2', _0: v0, _1: v1};
-				})),
-		_jinjor$binary_decoder$SmfDecoder$deltaTime),
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
-		function (num) {
-			return (_elm_lang$core$Native_Utils.cmp((num / 16) | 0, 8) < 0) ? _jinjor$binary_decoder$BinaryDecoder$fail('Running Status not implemented.') : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 8) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+var _jinjor$binary_decoder$SmfDecoder$data = F2(
+	function (status, first) {
+		return _elm_lang$core$Native_Utils.eq((status / 16) | 0, 8) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
 				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$SmfDecoder$NoteOff(
-							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 9) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$SmfDecoder$NoteOff,
+					A2(_elm_lang$core$Basics_ops['%'], status, 16),
+					first)),
+			_jinjor$binary_decoder$BinaryDecoder$skip(1)) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 9) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
+				function (vel) {
+					return _elm_lang$core$Native_Utils.eq(vel, 0) ? A2(
+						_jinjor$binary_decoder$SmfDecoder$NoteOff,
+						A2(_elm_lang$core$Basics_ops['%'], status, 16),
+						first) : A3(
+						_jinjor$binary_decoder$SmfDecoder$NoteOn,
+						A2(_elm_lang$core$Basics_ops['%'], status, 16),
+						first,
+						vel);
+				}),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 10) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
 				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						F2(
-							function (note, vel) {
-								return _elm_lang$core$Native_Utils.eq(vel, 0) ? A2(
-									_jinjor$binary_decoder$SmfDecoder$NoteOff,
-									A2(_elm_lang$core$Basics_ops['%'], num, 16),
-									note) : A3(
-									_jinjor$binary_decoder$SmfDecoder$NoteOn,
-									A2(_elm_lang$core$Basics_ops['%'], num, 16),
-									note,
-									vel);
-							})),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 10) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+					_jinjor$binary_decoder$SmfDecoder$KeyPressure,
+					A2(_elm_lang$core$Basics_ops['%'], status, 16),
+					first)),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 11) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
 				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$SmfDecoder$KeyPressure(
-							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 11) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$SmfDecoder$ControlChange(
-							A2(_elm_lang$core$Basics_ops['%'], num, 16))),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 12) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$SmfDecoder$ProgramChange(
-						A2(_elm_lang$core$Basics_ops['%'], num, 16))),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 13) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$SmfDecoder$ChannelPressure(
-						A2(_elm_lang$core$Basics_ops['%'], num, 16))),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 14) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						F2(
-							function (lsb, msb) {
-								return A2(
-									_jinjor$binary_decoder$SmfDecoder$PitchWheelChange,
-									A2(_elm_lang$core$Basics_ops['%'], num, 16),
-									0);
-							})),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 15) ? _jinjor$binary_decoder$SmfDecoder$meta : _jinjor$binary_decoder$BinaryDecoder$fail(
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					'unknown data type: 0x',
-					_rtfeldman$hex$Hex$toString(num)))))))))));
-		}));
-var _jinjor$binary_decoder$SmfDecoder$dataListHelp = function (prev) {
+					_jinjor$binary_decoder$SmfDecoder$ControlChange,
+					A2(_elm_lang$core$Basics_ops['%'], status, 16),
+					first)),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 12) ? _jinjor$binary_decoder$BinaryDecoder$succeed(
+			A2(
+				_jinjor$binary_decoder$SmfDecoder$ProgramChange,
+				A2(_elm_lang$core$Basics_ops['%'], status, 16),
+				first)) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 13) ? _jinjor$binary_decoder$BinaryDecoder$succeed(
+			A2(
+				_jinjor$binary_decoder$SmfDecoder$ChannelPressure,
+				A2(_elm_lang$core$Basics_ops['%'], status, 16),
+				first)) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 14) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
+			_jinjor$binary_decoder$BinaryDecoder$succeed(
+				function (msb) {
+					return A2(
+						_jinjor$binary_decoder$SmfDecoder$PitchWheelChange,
+						A2(_elm_lang$core$Basics_ops['%'], status, 16),
+						0);
+				}),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 15) ? _jinjor$binary_decoder$SmfDecoder$meta(first) : _jinjor$binary_decoder$BinaryDecoder$fail(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'unknown data type: 0x',
+				_rtfeldman$hex$Hex$toString(status))))))))));
+	});
+var _jinjor$binary_decoder$SmfDecoder$deltaTimeAndData = function (prevStatus) {
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$SmfDecoder$data,
-		function (d) {
-			var _p0 = d;
-			if ((_p0.ctor === '_Tuple2') && (_p0._1.ctor === 'End')) {
-				return _jinjor$binary_decoder$BinaryDecoder$succeed(
-					{ctor: '::', _0: d, _1: prev});
-			} else {
-				return _jinjor$binary_decoder$SmfDecoder$dataListHelp(
-					{ctor: '::', _0: d, _1: prev});
-			}
+		_jinjor$binary_decoder$SmfDecoder$deltaTime,
+		function (dtime) {
+			return A2(
+				_jinjor$binary_decoder$BinaryDecoder$given,
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+				function (status) {
+					return (_elm_lang$core$Native_Utils.cmp((status / 16) | 0, 8) < 0) ? ((_elm_lang$core$Native_Utils.cmp(prevStatus, 0) > -1) ? A2(
+						_jinjor$binary_decoder$BinaryDecoder$map,
+						function (data) {
+							return {
+								ctor: '_Tuple2',
+								_0: prevStatus,
+								_1: {ctor: '_Tuple2', _0: dtime, _1: data}
+							};
+						},
+						A2(_jinjor$binary_decoder$SmfDecoder$data, prevStatus, status)) : _jinjor$binary_decoder$BinaryDecoder$fail('Running Status needs previous data.')) : A2(
+						_jinjor$binary_decoder$BinaryDecoder$map,
+						function (data) {
+							return {
+								ctor: '_Tuple2',
+								_0: status,
+								_1: {ctor: '_Tuple2', _0: dtime, _1: data}
+							};
+						},
+						A2(
+							_jinjor$binary_decoder$BinaryDecoder$given,
+							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+							_jinjor$binary_decoder$SmfDecoder$data(status)));
+				});
 		});
 };
+var _jinjor$binary_decoder$SmfDecoder$dataListHelp = F2(
+	function (prevStatus, prev) {
+		return A2(
+			_jinjor$binary_decoder$BinaryDecoder$given,
+			_jinjor$binary_decoder$SmfDecoder$deltaTimeAndData(prevStatus),
+			function (_p0) {
+				var _p1 = _p0;
+				var _p3 = _p1._1;
+				var _p2 = _p3;
+				if ((_p2.ctor === '_Tuple2') && (_p2._1.ctor === 'End')) {
+					return _jinjor$binary_decoder$BinaryDecoder$succeed(
+						{ctor: '::', _0: _p3, _1: prev});
+				} else {
+					return A2(
+						_jinjor$binary_decoder$SmfDecoder$dataListHelp,
+						_p1._0,
+						{ctor: '::', _0: _p3, _1: prev});
+				}
+			});
+	});
 var _jinjor$binary_decoder$SmfDecoder$dataList = A2(
 	_jinjor$binary_decoder$BinaryDecoder$map,
 	_elm_lang$core$List$reverse,
-	_jinjor$binary_decoder$SmfDecoder$dataListHelp(
+	A2(
+		_jinjor$binary_decoder$SmfDecoder$dataListHelp,
+		-1,
 		{ctor: '[]'}));
 var _jinjor$binary_decoder$SmfDecoder$track = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9791,10 +9804,7 @@ var _jinjor$binary_decoder$SmfDecoder$track = A2(
 			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$Track),
 			_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('MTrk')),
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder$map,
-			_elm_lang$core$Debug$log('length'),
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE)),
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
 	_jinjor$binary_decoder$SmfDecoder$dataList);
 var _jinjor$binary_decoder$SmfDecoder$smf = A2(
 	_jinjor$binary_decoder$BinaryDecoder$given,
