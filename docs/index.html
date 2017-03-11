@@ -9382,8 +9382,12 @@ var _jinjor$binary_decoder$ErrorFormatter$numbersStyle = {
 	_0: {ctor: '_Tuple2', _0: 'padding-left', _1: '40px'},
 	_1: {
 		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '10px'},
-		_1: {ctor: '[]'}
+		_0: {ctor: '_Tuple2', _0: 'margin-top', _1: '10px'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '10px'},
+			_1: {ctor: '[]'}
+		}
 	}
 };
 var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
@@ -9403,8 +9407,8 @@ var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
 		}
 	}
 };
-var _jinjor$binary_decoder$ErrorFormatter$toHtml = F3(
-	function (message, before, value) {
+var _jinjor$binary_decoder$ErrorFormatter$toHtml = F4(
+	function (position, message, before, value) {
 		var _p0 = A3(
 			_elm_lang$core$List$foldl,
 			F2(
@@ -9454,30 +9458,45 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F3(
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$div,
+					{ctor: '[]'},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$numbersStyle),
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'decode failed at ',
+								_elm_lang$core$Basics$toString(position))),
 						_1: {ctor: '[]'}
-					},
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						A2(_elm_lang$core$List$map, _jinjor$binary_decoder$ErrorFormatter$row, init),
-						{
-							ctor: '::',
-							_0: A2(_jinjor$binary_decoder$ErrorFormatter$lastRow, last, value),
-							_1: {ctor: '[]'}
-						})),
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$div,
-						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(message),
+							_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$numbersStyle),
 							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
+						},
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A2(_elm_lang$core$List$map, _jinjor$binary_decoder$ErrorFormatter$row, init),
+							{
+								ctor: '::',
+								_0: A2(_jinjor$binary_decoder$ErrorFormatter$lastRow, last, value),
+								_1: {ctor: '[]'}
+							})),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(message),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
 				}
 			});
 	});
@@ -9494,7 +9513,7 @@ var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
 			A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$ErrorFormatter$toHtml(error.message)),
+					A2(_jinjor$binary_decoder$ErrorFormatter$toHtml, error.position, error.message)),
 				_jinjor$binary_decoder$BinaryDecoder$goTo(start)),
 			A2(_jinjor$binary_decoder$BinaryDecoder$repeat, error.position - start, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);

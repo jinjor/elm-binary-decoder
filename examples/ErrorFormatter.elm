@@ -26,7 +26,7 @@ err error =
     start =
       startPosition error.position
   in
-    succeed (toHtml error.message)
+    succeed (toHtml error.position error.message)
       |. goTo start
       |= repeat (error.position - start) uint8
       |= uint8
@@ -41,8 +41,8 @@ startPosition pos =
     start - start % 16
 
 
-toHtml : String -> List Int -> Int -> Html msg
-toHtml message before value =
+toHtml : Int -> String -> List Int -> Int -> Html msg
+toHtml position message before value =
   let
     (_, last_, init_) =
       before
@@ -63,7 +63,8 @@ toHtml message before value =
         |> List.reverse
   in
     pre [ style preStyle ]
-      [ div
+      [ div [] [ text <| "decode failed at " ++ toString position ]
+      , div
           [ style numbersStyle ]
           ( List.map row init ++ [ lastRow last value ] )
       , div [] [ text message ]
@@ -82,6 +83,7 @@ preStyle =
 numbersStyle : List (String, String)
 numbersStyle =
   [ ("padding-left", "40px")
+  , ("margin-top", "10px")
   , ("margin-bottom", "10px")
   ]
 
