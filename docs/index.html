@@ -9348,8 +9348,8 @@ var _jinjor$binary_decoder$ErrorFormatter$cell = F2(
 				}
 			});
 	});
-var _jinjor$binary_decoder$ErrorFormatter$lastRow = F2(
-	function (numbers, value) {
+var _jinjor$binary_decoder$ErrorFormatter$lastRow = F3(
+	function (rowIndex, numbers, value) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{ctor: '[]'},
@@ -9364,19 +9364,64 @@ var _jinjor$binary_decoder$ErrorFormatter$lastRow = F2(
 					});
 			}(
 				A2(
+					F2(
+						function (x, y) {
+							return {ctor: '::', _0: x, _1: y};
+						}),
+					A2(
+						_elm_lang$html$Html$span,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A3(
+									_elm_lang$core$String$padLeft,
+									4,
+									_elm_lang$core$Native_Utils.chr(' '),
+									_elm_lang$core$Basics$toString(rowIndex))),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' |    '),
+								_1: {ctor: '[]'}
+							}
+						}),
+					A2(
+						_elm_lang$core$List$map,
+						_jinjor$binary_decoder$ErrorFormatter$cell(false),
+						numbers))));
+	});
+var _jinjor$binary_decoder$ErrorFormatter$row = F3(
+	function (startRowIndex, index, numbers) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(
+				F2(
+					function (x, y) {
+						return {ctor: '::', _0: x, _1: y};
+					}),
+				A2(
+					_elm_lang$html$Html$span,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A3(
+								_elm_lang$core$String$padLeft,
+								4,
+								_elm_lang$core$Native_Utils.chr(' '),
+								_elm_lang$core$Basics$toString(startRowIndex + index))),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(' |    '),
+							_1: {ctor: '[]'}
+						}
+					}),
+				A2(
 					_elm_lang$core$List$map,
 					_jinjor$binary_decoder$ErrorFormatter$cell(false),
 					numbers)));
 	});
-var _jinjor$binary_decoder$ErrorFormatter$row = function (numbers) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
-		A2(
-			_elm_lang$core$List$map,
-			_jinjor$binary_decoder$ErrorFormatter$cell(false),
-			numbers));
-};
 var _jinjor$binary_decoder$ErrorFormatter$numbersStyle = {
 	ctor: '::',
 	_0: {ctor: '_Tuple2', _0: 'padding-left', _1: '40px'},
@@ -9407,8 +9452,8 @@ var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
 		}
 	}
 };
-var _jinjor$binary_decoder$ErrorFormatter$toHtml = F4(
-	function (position, message, before, value) {
+var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
+	function (startRowIndex, position, message, before, value) {
 		var _p0 = A3(
 			_elm_lang$core$List$foldl,
 			F2(
@@ -9479,10 +9524,17 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F4(
 						},
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							A2(_elm_lang$core$List$map, _jinjor$binary_decoder$ErrorFormatter$row, init),
+							A2(
+								_elm_lang$core$List$indexedMap,
+								_jinjor$binary_decoder$ErrorFormatter$row(startRowIndex),
+								init),
 							{
 								ctor: '::',
-								_0: A2(_jinjor$binary_decoder$ErrorFormatter$lastRow, last, value),
+								_0: A3(
+									_jinjor$binary_decoder$ErrorFormatter$lastRow,
+									startRowIndex + _elm_lang$core$List$length(init),
+									last,
+									value),
 								_1: {ctor: '[]'}
 							})),
 					_1: {
@@ -9501,11 +9553,12 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F4(
 			});
 	});
 var _jinjor$binary_decoder$ErrorFormatter$startPosition = function (pos) {
-	var start = A2(_elm_lang$core$Basics$max, 0, pos - 64);
+	var start = A2(_elm_lang$core$Basics$max, 0, pos - 128);
 	return start - A2(_elm_lang$core$Basics_ops['%'], start, 16);
 };
 var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
 	var start = _jinjor$binary_decoder$ErrorFormatter$startPosition(error.position);
+	var startRowIndex = (start / 16) | 0;
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 		A2(
@@ -9513,7 +9566,7 @@ var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
 			A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					A2(_jinjor$binary_decoder$ErrorFormatter$toHtml, error.position, error.message)),
+					A3(_jinjor$binary_decoder$ErrorFormatter$toHtml, startRowIndex, error.position, error.message)),
 				_jinjor$binary_decoder$BinaryDecoder$goTo(start)),
 			A2(_jinjor$binary_decoder$BinaryDecoder$repeat, error.position - start, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
@@ -9580,6 +9633,24 @@ var _jinjor$binary_decoder$SmfDecoder$Track = F2(
 		return {length: a, values: b};
 	});
 var _jinjor$binary_decoder$SmfDecoder$End = {ctor: 'End'};
+var _jinjor$binary_decoder$SmfDecoder$Meta = function (a) {
+	return {ctor: 'Meta', _0: a};
+};
+var _jinjor$binary_decoder$SmfDecoder$meta = A2(
+	_jinjor$binary_decoder$BinaryDecoder$given,
+	_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+	function (tipe) {
+		return A2(
+			_jinjor$binary_decoder$BinaryDecoder$given,
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+			function (length) {
+				return _elm_lang$core$Native_Utils.eq(tipe, 47) ? _jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End) : A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(
+						_jinjor$binary_decoder$SmfDecoder$Meta(tipe)),
+					_jinjor$binary_decoder$BinaryDecoder$skip(length));
+			});
+	});
 var _jinjor$binary_decoder$SmfDecoder$PitchWheelChange = F2(
 	function (a, b) {
 		return {ctor: 'PitchWheelChange', _0: a, _1: b};
@@ -9622,7 +9693,7 @@ var _jinjor$binary_decoder$SmfDecoder$data = A2(
 		_jinjor$binary_decoder$BinaryDecoder$given,
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
 		function (num) {
-			return _elm_lang$core$Native_Utils.eq((num / 16) | 0, 8) ? A2(
+			return (_elm_lang$core$Native_Utils.cmp((num / 16) | 0, 8) < 0) ? _jinjor$binary_decoder$BinaryDecoder$fail('Running Status not implemented.') : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 8) ? A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9686,17 +9757,11 @@ var _jinjor$binary_decoder$SmfDecoder$data = A2(
 									0);
 							})),
 					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq(num, 255) ? A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End),
-					A2(_jinjor$binary_decoder$BinaryDecoder$equal, 47, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
-				A2(_jinjor$binary_decoder$BinaryDecoder$equal, 0, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)) : _jinjor$binary_decoder$BinaryDecoder$fail(
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((num / 16) | 0, 15) ? _jinjor$binary_decoder$SmfDecoder$meta : _jinjor$binary_decoder$BinaryDecoder$fail(
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					'unknown data type: ',
-					_elm_lang$core$Basics$toString(num))))))))));
+					'unknown data type: 0x',
+					_rtfeldman$hex$Hex$toString(num)))))))))));
 		}));
 var _jinjor$binary_decoder$SmfDecoder$dataListHelp = function (prev) {
 	return A2(
@@ -9726,7 +9791,10 @@ var _jinjor$binary_decoder$SmfDecoder$track = A2(
 			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$Track),
 			_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('MTrk')),
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
+		A2(
+			_jinjor$binary_decoder$BinaryDecoder$map,
+			_elm_lang$core$Debug$log('length'),
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE)),
 	_jinjor$binary_decoder$SmfDecoder$dataList);
 var _jinjor$binary_decoder$SmfDecoder$smf = A2(
 	_jinjor$binary_decoder$BinaryDecoder$given,

@@ -25,8 +25,11 @@ err error =
   let
     start =
       startPosition error.position
+
+    startRowIndex =
+      start // 16
   in
-    succeed (toHtml error.position error.message)
+    succeed (toHtml startRowIndex error.position error.message)
       |. goTo start
       |= repeat (error.position - start) uint8
       |= uint8
@@ -41,8 +44,8 @@ startPosition pos =
     start - start % 16
 
 
-toHtml : Int -> String -> List Int -> Int -> Html msg
-toHtml position message before value =
+toHtml : Int -> Int -> String -> List Int -> Int -> Html msg
+toHtml startRowIndex position message before value =
   let
     (_, last_, init_) =
       before
@@ -66,7 +69,7 @@ toHtml position message before value =
       [ div [] [ text <| "decode failed at " ++ toString position ]
       , div
           [ style numbersStyle ]
-          ( List.map row init ++ [ lastRow last value ] )
+          ( List.indexedMap (row startRowIndex) init ++ [ lastRow (startRowIndex + List.length init) last value ] )
       , div [] [ text message ]
       ]
 
@@ -88,17 +91,19 @@ numbersStyle =
   ]
 
 
-row : List Int -> Html msg
-row numbers =
+row : Int -> Int -> List Int -> Html msg
+row startRowIndex index numbers =
   numbers
     |> List.map (cell False)
+    |> (::) (span [] [ text <| String.padLeft 4 ' ' <| toString (startRowIndex + index), text " |    " ])
     |> div []
 
 
-lastRow : List Int -> Int -> Html msg
-lastRow numbers value =
+lastRow : Int -> List Int -> Int -> Html msg
+lastRow rowIndex numbers value =
   numbers
     |> List.map (cell False)
+    |> (::) (span [] [ text <| String.padLeft 4 ' ' <| toString rowIndex, text " |    " ])
     |> (\normalCells -> normalCells ++ [ cell True value ] )
     |> div []
 

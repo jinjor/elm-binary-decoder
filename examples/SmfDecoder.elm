@@ -4,6 +4,7 @@ module SmfDecoder exposing (..)
 import Bitwise
 import BinaryDecoder.Byte exposing (..)
 import BinaryDecoder exposing (..)
+import Hex
 
 
 type alias Smf =
@@ -37,6 +38,7 @@ type Data
   | ProgramChange Channel Int
   | ChannelPressure Channel Int
   | PitchWheelChange Channel Int
+  | Meta Int
   | End
 
 
@@ -63,7 +65,7 @@ track : Decoder Track
 track =
   succeed Track
     |. symbol "MTrk"
-    |= uint32BE
+    |= map (Debug.log "length") uint32BE
     |= dataList
 
 
@@ -90,7 +92,9 @@ data =
   succeed (,)
     |= deltaTime
     |= given uint8 (\num ->
-        if num // 16 == 8 then
+        if num // 16 < 8 then
+          fail "Running Status not implemented."
+        else if num // 16 == 8 then
           succeed (NoteOff (num % 16))
             |= uint8
             |. uint8
@@ -121,13 +125,23 @@ data =
           succeed (\lsb msb -> PitchWheelChange (num % 16) 0) -- TODO
             |= uint8
             |= uint8
-        else if num == 0xFF then
-          succeed End
-            |. equal 0x2F uint8
-            |. equal 0 uint8
+        else if num // 16 == 0xF then
+          meta
         else
-          fail ("unknown data type: " ++ toString num)
+          fail ("unknown data type: 0x" ++ Hex.toString num)
       )
+
+
+meta : Decoder Data
+meta =
+  given uint8 (\tipe ->
+  given uint8 (\length ->
+    if tipe == 0x2F then
+      succeed End
+    else
+      succeed (Meta tipe)
+        |. skip length
+  ))
 
 
 deltaTime : Decoder Int
