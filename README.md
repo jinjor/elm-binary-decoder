@@ -45,14 +45,14 @@ This example only decodes meta data because the cost of using immutable data sho
 
 You can use two decoders together.
 
-This is an example of Mp3Decoder.
+This is an example from Mp3Decoder.
 
 ```elm
 tagId3v2FrameHeaderFlags : Decoder TagId3v2FrameHeaderFlags
 tagId3v2FrameHeaderFlags =
-  -- This is (Btye) Decoder
+  -- This is (Byte) Decoder
   bits 2 <|
-    -- and, this is BitDecoder.
+    -- and this is BitDecoder.
     succeed TagId3v2FrameHeaderFlags
       |. goTo 1
       |= Bit.bool
@@ -67,7 +67,7 @@ tagId3v2FrameHeaderFlags =
       |= Bit.bool
 ```
 
-While "Btye" decoder decodes the whole binary data, "Bit" decoder only decodes an Int value.
+While "Byte" decoder decodes the whole binary data, "Bit" decoder only decodes an Int value.
 
 
 ## What's special about this library?
