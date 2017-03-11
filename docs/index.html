@@ -9319,7 +9319,7 @@ var _rtfeldman$hex$Hex$fromString = function (str) {
 		return A2(_elm_lang$core$Result$mapError, formatError, result);
 	}
 };
-var _jinjor$binary_decoder$ErrorFormatter$cell = F2(
+var _jinjor$binary_decoder$Demo_ErrorFormatter$cell = F2(
 	function (strong, value) {
 		return A2(
 			_elm_lang$html$Html$span,
@@ -9348,7 +9348,7 @@ var _jinjor$binary_decoder$ErrorFormatter$cell = F2(
 				}
 			});
 	});
-var _jinjor$binary_decoder$ErrorFormatter$lastRow = F3(
+var _jinjor$binary_decoder$Demo_ErrorFormatter$lastRow = F3(
 	function (rowIndex, numbers, value) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -9359,7 +9359,7 @@ var _jinjor$binary_decoder$ErrorFormatter$lastRow = F3(
 					normalCells,
 					{
 						ctor: '::',
-						_0: A2(_jinjor$binary_decoder$ErrorFormatter$cell, true, value),
+						_0: A2(_jinjor$binary_decoder$Demo_ErrorFormatter$cell, true, value),
 						_1: {ctor: '[]'}
 					});
 			}(
@@ -9387,10 +9387,10 @@ var _jinjor$binary_decoder$ErrorFormatter$lastRow = F3(
 						}),
 					A2(
 						_elm_lang$core$List$map,
-						_jinjor$binary_decoder$ErrorFormatter$cell(false),
+						_jinjor$binary_decoder$Demo_ErrorFormatter$cell(false),
 						numbers))));
 	});
-var _jinjor$binary_decoder$ErrorFormatter$row = F3(
+var _jinjor$binary_decoder$Demo_ErrorFormatter$row = F3(
 	function (startRowIndex, index, numbers) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -9419,10 +9419,10 @@ var _jinjor$binary_decoder$ErrorFormatter$row = F3(
 					}),
 				A2(
 					_elm_lang$core$List$map,
-					_jinjor$binary_decoder$ErrorFormatter$cell(false),
+					_jinjor$binary_decoder$Demo_ErrorFormatter$cell(false),
 					numbers)));
 	});
-var _jinjor$binary_decoder$ErrorFormatter$numbersStyle = {
+var _jinjor$binary_decoder$Demo_ErrorFormatter$numbersStyle = {
 	ctor: '::',
 	_0: {ctor: '_Tuple2', _0: 'padding-left', _1: '40px'},
 	_1: {
@@ -9435,7 +9435,7 @@ var _jinjor$binary_decoder$ErrorFormatter$numbersStyle = {
 		}
 	}
 };
-var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
+var _jinjor$binary_decoder$Demo_ErrorFormatter$preStyle = {
 	ctor: '::',
 	_0: {ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
 	_1: {
@@ -9452,7 +9452,7 @@ var _jinjor$binary_decoder$ErrorFormatter$preStyle = {
 		}
 	}
 };
-var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
+var _jinjor$binary_decoder$Demo_ErrorFormatter$toHtml = F5(
 	function (startRowIndex, position, message, before, value) {
 		var _p0 = A3(
 			_elm_lang$core$List$foldl,
@@ -9496,7 +9496,7 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
 			_elm_lang$html$Html$pre,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$preStyle),
+				_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$Demo_ErrorFormatter$preStyle),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -9519,19 +9519,19 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
 						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$ErrorFormatter$numbersStyle),
+							_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$Demo_ErrorFormatter$numbersStyle),
 							_1: {ctor: '[]'}
 						},
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							A2(
 								_elm_lang$core$List$indexedMap,
-								_jinjor$binary_decoder$ErrorFormatter$row(startRowIndex),
+								_jinjor$binary_decoder$Demo_ErrorFormatter$row(startRowIndex),
 								init),
 							{
 								ctor: '::',
 								_0: A3(
-									_jinjor$binary_decoder$ErrorFormatter$lastRow,
+									_jinjor$binary_decoder$Demo_ErrorFormatter$lastRow,
 									startRowIndex + _elm_lang$core$List$length(init),
 									last,
 									value),
@@ -9552,12 +9552,12 @@ var _jinjor$binary_decoder$ErrorFormatter$toHtml = F5(
 				}
 			});
 	});
-var _jinjor$binary_decoder$ErrorFormatter$startPosition = function (pos) {
+var _jinjor$binary_decoder$Demo_ErrorFormatter$startPosition = function (pos) {
 	var start = A2(_elm_lang$core$Basics$max, 0, pos - 64);
 	return start - A2(_elm_lang$core$Basics_ops['%'], start, 16);
 };
-var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
-	var start = _jinjor$binary_decoder$ErrorFormatter$startPosition(error.position);
+var _jinjor$binary_decoder$Demo_ErrorFormatter$err = function (error) {
+	var start = _jinjor$binary_decoder$Demo_ErrorFormatter$startPosition(error.position);
 	var startRowIndex = (start / 16) | 0;
 	return A2(
 		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9566,16 +9566,16 @@ var _jinjor$binary_decoder$ErrorFormatter$err = function (error) {
 			A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					A3(_jinjor$binary_decoder$ErrorFormatter$toHtml, startRowIndex, error.position, error.message)),
+					A3(_jinjor$binary_decoder$Demo_ErrorFormatter$toHtml, startRowIndex, error.position, error.message)),
 				_jinjor$binary_decoder$BinaryDecoder$goTo(start)),
 			A2(_jinjor$binary_decoder$BinaryDecoder$repeat, error.position - start, _jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 };
-var _jinjor$binary_decoder$ErrorFormatter$print = F2(
+var _jinjor$binary_decoder$Demo_ErrorFormatter$print = F2(
 	function (buf, error) {
 		var _p6 = A2(
 			_jinjor$binary_decoder$BinaryDecoder_Byte$decode,
-			_jinjor$binary_decoder$ErrorFormatter$err(error),
+			_jinjor$binary_decoder$Demo_ErrorFormatter$err(error),
 			buf);
 		if (_p6.ctor === 'Ok') {
 			return _p6._0;
@@ -9819,6 +9819,192 @@ var _jinjor$binary_decoder$SmfDecoder$smf = A2(
 				header.length + 8,
 				A2(_jinjor$binary_decoder$BinaryDecoder$repeat, header.trackNumber, _jinjor$binary_decoder$SmfDecoder$track)));
 	});
+var _jinjor$binary_decoder$Demo_MidiRenderer$px = function (num) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(num),
+		'px');
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$noteStyle = function (note) {
+	return {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+		_1: {
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'left',
+				_1: _jinjor$binary_decoder$Demo_MidiRenderer$px((note.position / 100) | 0)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'top',
+					_1: _jinjor$binary_decoder$Demo_MidiRenderer$px(60 - (note.note - 30))
+				},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'height', _1: '1px'},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'width',
+							_1: _jinjor$binary_decoder$Demo_MidiRenderer$px((note.length / 100) | 0)
+						},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'pink'},
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}
+	};
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$renderNote = function (note) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				_jinjor$binary_decoder$Demo_MidiRenderer$noteStyle(note)),
+			_1: {ctor: '[]'}
+		},
+		{ctor: '[]'});
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$trackStyle = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'position', _1: 'relative'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'black'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'height', _1: '60px'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '2px'},
+				_1: {ctor: '[]'}
+			}
+		}
+	}
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$renderTrack = function (track) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$Demo_MidiRenderer$trackStyle),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$Demo_MidiRenderer$renderNote, track.notes));
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$renderMidi = function (midi) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$Demo_MidiRenderer$renderTrack, midi.tracks));
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$Midi = function (a) {
+	return {tracks: a};
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$Track = F2(
+	function (a, b) {
+		return {name: a, notes: b};
+	});
+var _jinjor$binary_decoder$Demo_MidiRenderer$emptyTrack = A2(
+	_jinjor$binary_decoder$Demo_MidiRenderer$Track,
+	'',
+	{ctor: '[]'});
+var _jinjor$binary_decoder$Demo_MidiRenderer$Note = F3(
+	function (a, b, c) {
+		return {position: a, note: b, length: c};
+	});
+var _jinjor$binary_decoder$Demo_MidiRenderer$updateTrack = F2(
+	function (_p1, _p0) {
+		var _p2 = _p1;
+		var _p11 = _p2._0;
+		var _p3 = _p0;
+		var _p10 = _p3._0;
+		var _p9 = _p3._1;
+		return {
+			ctor: '_Tuple2',
+			_0: _p10 + _p11,
+			_1: function () {
+				var _p4 = _p2._1;
+				switch (_p4.ctor) {
+					case 'NoteOn':
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{
+								temporaryNotes: A3(
+									_elm_lang$core$Dict$insert,
+									_p4._1,
+									{ctor: '_Tuple2', _0: _p10 + _p11, _1: _p4._2},
+									_p9.temporaryNotes)
+							});
+					case 'NoteOff':
+						var _p8 = _p4._1;
+						return _elm_lang$core$Native_Utils.update(
+							_p9,
+							{
+								temporaryNotes: A2(_elm_lang$core$Dict$remove, _p8, _p9.temporaryNotes),
+								notes: A2(
+									_elm_lang$core$Maybe$withDefault,
+									_p9.notes,
+									A2(
+										_elm_lang$core$Maybe$map,
+										function (_p5) {
+											var _p6 = _p5;
+											var _p7 = _p6._0;
+											return {
+												ctor: '::',
+												_0: A3(_jinjor$binary_decoder$Demo_MidiRenderer$Note, _p7, _p8, (_p10 + _p11) - _p7),
+												_1: _p9.notes
+											};
+										},
+										A2(_elm_lang$core$Dict$get, _p8, _p9.temporaryNotes)))
+							});
+					default:
+						return _p9;
+				}
+			}()
+		};
+	});
+var _jinjor$binary_decoder$Demo_MidiRenderer$Context = F2(
+	function (a, b) {
+		return {temporaryNotes: a, notes: b};
+	});
+var _jinjor$binary_decoder$Demo_MidiRenderer$initContext = A2(
+	_jinjor$binary_decoder$Demo_MidiRenderer$Context,
+	_elm_lang$core$Dict$empty,
+	{ctor: '[]'});
+var _jinjor$binary_decoder$Demo_MidiRenderer$fromSmfTrack = function (track) {
+	return function (notes) {
+		return A2(_jinjor$binary_decoder$Demo_MidiRenderer$Track, '', notes);
+	}(
+		_elm_lang$core$List$reverse(
+			function (_) {
+				return _.notes;
+			}(
+				_elm_lang$core$Tuple$second(
+					A3(
+						_elm_lang$core$List$foldl,
+						_jinjor$binary_decoder$Demo_MidiRenderer$updateTrack,
+						{ctor: '_Tuple2', _0: 0, _1: _jinjor$binary_decoder$Demo_MidiRenderer$initContext},
+						track.events)))));
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$fromSmf = function (smf) {
+	return _jinjor$binary_decoder$Demo_MidiRenderer$Midi(
+		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$Demo_MidiRenderer$fromSmfTrack, smf.tracks));
+};
+var _jinjor$binary_decoder$Demo_MidiRenderer$renderSmf = function (smf) {
+	return _jinjor$binary_decoder$Demo_MidiRenderer$renderMidi(
+		_jinjor$binary_decoder$Demo_MidiRenderer$fromSmf(smf));
+};
 var _jinjor$binary_decoder$Mp3Decoder$syncSafeInt = A2(
 	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
 	A2(
@@ -11141,192 +11327,6 @@ var _jinjor$binary_decoder$PngDecoder$png = A2(
 			})),
 	_jinjor$binary_decoder$PngDecoder$chainChunks(
 		_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$PngDecoder$init)));
-var _jinjor$binary_decoder$MidiRenderer$px = function (num) {
-	return A2(
-		_elm_lang$core$Basics_ops['++'],
-		_elm_lang$core$Basics$toString(num),
-		'px');
-};
-var _jinjor$binary_decoder$MidiRenderer$noteStyle = function (note) {
-	return {
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
-		_1: {
-			ctor: '::',
-			_0: {
-				ctor: '_Tuple2',
-				_0: 'left',
-				_1: _jinjor$binary_decoder$MidiRenderer$px((note.position / 100) | 0)
-			},
-			_1: {
-				ctor: '::',
-				_0: {
-					ctor: '_Tuple2',
-					_0: 'top',
-					_1: _jinjor$binary_decoder$MidiRenderer$px(60 - (note.note - 30))
-				},
-				_1: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'height', _1: '1px'},
-					_1: {
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: 'width',
-							_1: _jinjor$binary_decoder$MidiRenderer$px((note.length / 100) | 0)
-						},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'pink'},
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			}
-		}
-	};
-};
-var _jinjor$binary_decoder$MidiRenderer$renderNote = function (note) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$style(
-				_jinjor$binary_decoder$MidiRenderer$noteStyle(note)),
-			_1: {ctor: '[]'}
-		},
-		{ctor: '[]'});
-};
-var _jinjor$binary_decoder$MidiRenderer$trackStyle = {
-	ctor: '::',
-	_0: {ctor: '_Tuple2', _0: 'position', _1: 'relative'},
-	_1: {
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'background-color', _1: 'black'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'height', _1: '60px'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'margin-bottom', _1: '2px'},
-				_1: {ctor: '[]'}
-			}
-		}
-	}
-};
-var _jinjor$binary_decoder$MidiRenderer$renderTrack = function (track) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$style(_jinjor$binary_decoder$MidiRenderer$trackStyle),
-			_1: {ctor: '[]'}
-		},
-		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$MidiRenderer$renderNote, track.notes));
-};
-var _jinjor$binary_decoder$MidiRenderer$renderMidi = function (midi) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
-		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$MidiRenderer$renderTrack, midi.tracks));
-};
-var _jinjor$binary_decoder$MidiRenderer$Midi = function (a) {
-	return {tracks: a};
-};
-var _jinjor$binary_decoder$MidiRenderer$Track = F2(
-	function (a, b) {
-		return {name: a, notes: b};
-	});
-var _jinjor$binary_decoder$MidiRenderer$emptyTrack = A2(
-	_jinjor$binary_decoder$MidiRenderer$Track,
-	'',
-	{ctor: '[]'});
-var _jinjor$binary_decoder$MidiRenderer$Note = F3(
-	function (a, b, c) {
-		return {position: a, note: b, length: c};
-	});
-var _jinjor$binary_decoder$MidiRenderer$updateTrack = F2(
-	function (_p1, _p0) {
-		var _p2 = _p1;
-		var _p11 = _p2._0;
-		var _p3 = _p0;
-		var _p10 = _p3._0;
-		var _p9 = _p3._1;
-		return {
-			ctor: '_Tuple2',
-			_0: _p10 + _p11,
-			_1: function () {
-				var _p4 = _p2._1;
-				switch (_p4.ctor) {
-					case 'NoteOn':
-						return _elm_lang$core$Native_Utils.update(
-							_p9,
-							{
-								temporaryNotes: A3(
-									_elm_lang$core$Dict$insert,
-									_p4._1,
-									{ctor: '_Tuple2', _0: _p10 + _p11, _1: _p4._2},
-									_p9.temporaryNotes)
-							});
-					case 'NoteOff':
-						var _p8 = _p4._1;
-						return _elm_lang$core$Native_Utils.update(
-							_p9,
-							{
-								temporaryNotes: A2(_elm_lang$core$Dict$remove, _p8, _p9.temporaryNotes),
-								notes: A2(
-									_elm_lang$core$Maybe$withDefault,
-									_p9.notes,
-									A2(
-										_elm_lang$core$Maybe$map,
-										function (_p5) {
-											var _p6 = _p5;
-											var _p7 = _p6._0;
-											return {
-												ctor: '::',
-												_0: A3(_jinjor$binary_decoder$MidiRenderer$Note, _p7, _p8, (_p10 + _p11) - _p7),
-												_1: _p9.notes
-											};
-										},
-										A2(_elm_lang$core$Dict$get, _p8, _p9.temporaryNotes)))
-							});
-					default:
-						return _p9;
-				}
-			}()
-		};
-	});
-var _jinjor$binary_decoder$MidiRenderer$Context = F2(
-	function (a, b) {
-		return {temporaryNotes: a, notes: b};
-	});
-var _jinjor$binary_decoder$MidiRenderer$initContext = A2(
-	_jinjor$binary_decoder$MidiRenderer$Context,
-	_elm_lang$core$Dict$empty,
-	{ctor: '[]'});
-var _jinjor$binary_decoder$MidiRenderer$fromSmfTrack = function (track) {
-	return function (notes) {
-		return A2(_jinjor$binary_decoder$MidiRenderer$Track, '', notes);
-	}(
-		_elm_lang$core$List$reverse(
-			function (_) {
-				return _.notes;
-			}(
-				_elm_lang$core$Tuple$second(
-					A3(
-						_elm_lang$core$List$foldl,
-						_jinjor$binary_decoder$MidiRenderer$updateTrack,
-						{ctor: '_Tuple2', _0: 0, _1: _jinjor$binary_decoder$MidiRenderer$initContext},
-						track.events)))));
-};
-var _jinjor$binary_decoder$MidiRenderer$fromSmf = function (smf) {
-	return _jinjor$binary_decoder$MidiRenderer$Midi(
-		A2(_elm_lang$core$List$map, _jinjor$binary_decoder$MidiRenderer$fromSmfTrack, smf.tracks));
-};
-var _jinjor$binary_decoder$MidiRenderer$renderSmf = function (smf) {
-	return _jinjor$binary_decoder$MidiRenderer$renderMidi(
-		_jinjor$binary_decoder$MidiRenderer$fromSmf(smf));
-};
 var _jinjor$binary_decoder$Main$fileLoadButton = F2(
 	function (accept_, tagger) {
 		return A2(
@@ -11474,7 +11474,7 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 										});
 								} else {
 									if (_p4._0._0.ctor === '_Tuple2') {
-										return A2(_jinjor$binary_decoder$ErrorFormatter$print, _p4._0._0._1, _p4._0._0._0);
+										return A2(_jinjor$binary_decoder$Demo_ErrorFormatter$print, _p4._0._0._1, _p4._0._0._0);
 									} else {
 										break _v2_2;
 									}
@@ -11509,10 +11509,10 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 									do {
 										if (_p5.ctor === 'Just') {
 											if (_p5._0.ctor === 'Ok') {
-												return _jinjor$binary_decoder$MidiRenderer$renderSmf(_p5._0._0);
+												return _jinjor$binary_decoder$Demo_MidiRenderer$renderSmf(_p5._0._0);
 											} else {
 												if (_p5._0._0.ctor === '_Tuple2') {
-													return A2(_jinjor$binary_decoder$ErrorFormatter$print, _p5._0._0._1, _p5._0._0._0);
+													return A2(_jinjor$binary_decoder$Demo_ErrorFormatter$print, _p5._0._0._1, _p5._0._0._0);
 												} else {
 													break _v3_2;
 												}

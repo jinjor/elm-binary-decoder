@@ -1,4 +1,4 @@
-module ErrorFormatter exposing (print)
+module Demo.ErrorFormatter exposing (print)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

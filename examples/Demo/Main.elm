@@ -1,5 +1,7 @@
 module Main exposing (..)
 
+import Json.Decode as Decode
+import Task
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -9,10 +11,8 @@ import SmfDecoder exposing (Smf)
 import Mp3Decoder
 import WaveDecoder
 import PngDecoder exposing (Png)
-import ErrorFormatter
-import Json.Decode as Decode
-import Task
-import MidiRenderer
+import Demo.ErrorFormatter as ErrorFormatter
+import Demo.MidiRenderer as MidiRenderer
 
 
 main : Program Never Model Msg

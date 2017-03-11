@@ -1,4 +1,4 @@
-module MidiRenderer exposing (..)
+module Demo.MidiRenderer exposing (..)
 
 import Dict exposing (Dict)
 import Html exposing (..)
