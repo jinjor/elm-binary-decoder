@@ -5,13 +5,14 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import BinaryDecoder.File as File exposing (File)
 import BinaryDecoder.Byte as Byte exposing (ArrayBuffer, Error)
-import SmfDecoder
+import SmfDecoder exposing (Smf)
 import Mp3Decoder
 import WaveDecoder
-import PngDecoder
+import PngDecoder exposing (Png)
 import ErrorFormatter
 import Json.Decode as Decode
 import Task
+import MidiRenderer
 
 
 main : Program Never Model Msg
@@ -25,7 +26,9 @@ main =
 
 
 type alias Model =
-  { result : Result (Error, ArrayBuffer) String }
+  { png : Maybe (Result (Error, ArrayBuffer) Png)
+  , smf : Maybe (Result (Error, ArrayBuffer) Smf)
+  }
 
 
 type FileType
@@ -40,7 +43,7 @@ type Msg
 
 init : (Model, Cmd Msg)
 init =
-  (Model (Ok ""), Cmd.none)
+  (Model Nothing Nothing, Cmd.none)
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -52,16 +55,22 @@ update msg model =
       )
 
     ReadBuffer tipe (Ok buf) ->
-      let
-        result =
-          case tipe of
-            Png -> Result.map toString <| Byte.decode PngDecoder.png buf
-            Smf -> Result.map toString <| Byte.decode SmfDecoder.smf buf
-      in
-        ({ model |
-          result =
-            result |> Result.mapError (\e -> (e, buf))
-        }, Cmd.none)
+      case tipe of
+        Png ->
+          ({ model |
+              png =
+                Byte.decode PngDecoder.png buf
+                  |> Result.mapError (\e -> (e, buf))
+                  |> Just
+          }, Cmd.none)
+
+        Smf ->
+          ({ model |
+              smf =
+                Byte.decode SmfDecoder.smf buf
+                  |> Result.mapError (\e -> (e, buf))
+                  |> Just
+          }, Cmd.none)
 
     ReadBuffer _ (Err e) ->
       Debug.crash "failed to read arrayBuffer"
@@ -77,11 +86,17 @@ view model =
   div []
     [ h2 [] [ text "PNG Decoder" ]
     , fileLoadButton "image/png" (GotFile Png)
+    , case model.png of
+        Just (Ok png) -> div [] [ text (toString png) ]
+        Just (Err (e, buf)) -> ErrorFormatter.print buf e
+        _ -> text ""
+
     , h2 [] [ text "MIDI Decoder" ]
     , fileLoadButton "audio/mid" (GotFile Smf)
-    , case model.result of
-        Ok s -> div [] [ text s ]
-        Err (e, buf) -> ErrorFormatter.print buf e
+    , case model.smf of
+        Just (Ok smf) -> MidiRenderer.renderSmf smf
+        Just (Err (e, buf)) -> ErrorFormatter.print buf e
+        _ -> text ""
     ]
 
 

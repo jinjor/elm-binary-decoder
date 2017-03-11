@@ -23,14 +23,14 @@ type alias Header =
 
 type alias Track =
   { length : Int
-  , values : List (Int, Data)
+  , events : List (Int, MidiEvent)
   }
 
 
 type alias Channel = Int
 type alias Note = Int
 
-type Data
+type MidiEvent
   = NoteOn Channel Note Int
   | NoteOff Channel Note
   | KeyPressure Channel Int Int
@@ -66,45 +66,45 @@ track =
   succeed Track
     |. symbol "MTrk"
     |= uint32BE
-    |= dataList
+    |= eventList
 
 
-dataList : Decoder (List (Int, Data))
-dataList =
-  dataListHelp -1 []
+eventList : Decoder (List (Int, MidiEvent))
+eventList =
+  eventListHelp -1 []
     |> map List.reverse
 
 
-dataListHelp : Int -> List (Int, Data) -> Decoder (List (Int, Data))
-dataListHelp prevStatus prev =
-  given (deltaTimeAndData prevStatus) (\(prevStatus, d) ->
-    case d of
+eventListHelp : Int -> List (Int, MidiEvent) -> Decoder (List (Int, MidiEvent))
+eventListHelp prevStatus prev =
+  given (deltaTimeAndData prevStatus) (\(prevStatus, e) ->
+    case e of
       (_, End) ->
-        succeed (d :: prev)
+        succeed (e :: prev)
 
       _ ->
-        dataListHelp prevStatus (d :: prev)
+        eventListHelp prevStatus (e :: prev)
     )
 
 
-deltaTimeAndData : Int -> Decoder (Int, (Int, Data))
+deltaTimeAndData : Int -> Decoder (Int, (Int, MidiEvent))
 deltaTimeAndData prevStatus =
   given deltaTime (\dtime ->
   given uint8 (\status ->
     if status // 16 < 8 then
       if prevStatus >= 0 then
-        data prevStatus status
-          |> map (\data -> (prevStatus, (dtime, data)))
+        event prevStatus status
+          |> map (\event -> (prevStatus, (dtime, event)))
       else
         fail "Running Status needs previous data."
     else
-      given uint8 (data status)
-        |> map (\data -> (status, (dtime, data)))
+      given uint8 (event status)
+        |> map (\event -> (status, (dtime, event)))
   ))
 
 
-data : Int -> Int -> Decoder Data
-data status first =
+event : Int -> Int -> Decoder MidiEvent
+event status first =
   if status // 16 == 8 then
     succeed (NoteOff (status % 16) first)
       |. skip 1
@@ -135,7 +135,7 @@ data status first =
     fail ("unknown data type: 0x" ++ Hex.toString status)
 
 
-meta : Int -> Decoder Data
+meta : Int -> Decoder MidiEvent
 meta tipe =
   given uint8 (\length ->
     if tipe == 0x2F then
@@ -144,7 +144,6 @@ meta tipe =
       succeed (Meta tipe)
         |. skip length
   )
-
 
 
 deltaTime : Decoder Int
