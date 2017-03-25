@@ -46,6 +46,22 @@ function readFileAsArrayBuffer(file) {
   });
 }
 
+function fetchArrayBuffer(url) {
+  return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback){
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'arraybuffer';
+    xhr.open('GET', url, true);
+    xhr.onload = function() {
+      callback(_elm_lang$core$Native_Scheduler.succeed(this.response));
+    };
+    xhr.onError = function(e) {
+      console.log(e);
+      callback(_elm_lang$core$Native_Scheduler.fail(Date.now()));
+    };
+    xhr.send();
+  });
+}
+
 function toDataView(buffer) {
   return new DataView(buffer);
 }
@@ -116,6 +132,7 @@ return {
   toFileList: toFileList,
   fileGet: F2(fileGet),
   readFileAsArrayBuffer: readFileAsArrayBuffer,
+  fetchArrayBuffer: fetchArrayBuffer,
 	toDataView: toDataView,
 	decodeInt: F2(decodeInt),
 	uint8: uint8,

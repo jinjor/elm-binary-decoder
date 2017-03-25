@@ -38,7 +38,8 @@ type FileType
 
 type Msg
   = GotFile FileType File
-  | ReadBuffer FileType (Result File.Error ArrayBuffer)
+  | ReadBuffer FileType (Result String ArrayBuffer)
+  | LoadMidi
 
 
 init : (Model, Cmd Msg)
@@ -51,7 +52,7 @@ update msg model =
   case msg of
     GotFile tipe file ->
       ( model
-      , Task.attempt (ReadBuffer tipe) (File.readFileAsArrayBuffer file)
+      , Task.attempt (ReadBuffer tipe) (File.readFileAsArrayBuffer file |> Task.mapError toString)
       )
 
     ReadBuffer tipe (Ok buf) ->
@@ -71,6 +72,11 @@ update msg model =
                   |> Result.mapError (\e -> (e, buf))
                   |> Just
           }, Cmd.none)
+
+    LoadMidi ->
+      ( model
+      , Task.attempt (ReadBuffer Smf) (File.fetchArrayBuffer "sample.mid")
+      )
 
     ReadBuffer _ (Err e) ->
       Debug.crash "failed to read arrayBuffer"
@@ -93,6 +99,7 @@ view model =
 
     , h2 [] [ text "MIDI Decoder" ]
     , fileLoadButton "audio/mid" (GotFile Smf)
+    , button [ onClick LoadMidi ] [ text "Load Sample" ]
     , case model.smf of
         Just (Ok smf) -> MidiRenderer.renderSmf smf
         Just (Err (e, buf)) -> ErrorFormatter.print buf e

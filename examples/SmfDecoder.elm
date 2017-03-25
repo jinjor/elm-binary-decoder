@@ -30,6 +30,7 @@ type alias Track =
 type alias Channel = Int
 type alias Note = Int
 
+
 type MidiEvent
   = NoteOn Channel Note Int
   | NoteOff Channel Note
@@ -38,9 +39,9 @@ type MidiEvent
   | ProgramChange Channel Int
   | ChannelPressure Channel Int
   | PitchWheelChange Channel Int
+  | SysEx
   | Meta Int
   | End
-
 
 
 smf : Decoder Smf
@@ -129,7 +130,12 @@ event status first =
   else if status // 16 == 0xE then
     succeed (\msb -> PitchWheelChange (status % 16) 0) -- TODO
       |= uint8
-  else if status // 16 == 0xF then
+  else if status == 0xF0 then
+    given uint8 (\length ->
+        succeed SysEx
+          |. skip length
+      )
+  else if status == 0xFF then
     meta first
   else
     fail ("unknown data type: 0x" ++ Hex.toString status)

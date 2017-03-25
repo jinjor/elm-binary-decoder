@@ -8838,6 +8838,24 @@ function readFileAsArrayBuffer(file) {
   });
 }
 
+function fetchArrayBuffer(url) {
+  console.log(url);
+  return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback){
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'arraybuffer';
+    xhr.open('GET', url, true);
+    xhr.onload = function() {
+      callback(_elm_lang$core$Native_Scheduler.succeed(this.response));
+    };
+    xhr.onError = function(e) {
+      console.log(e);
+      callback(_elm_lang$core$Native_Scheduler.fail(Date.now()));
+    };
+    xhr.send();
+
+  });
+}
+
 function toDataView(buffer) {
   return new DataView(buffer);
 }
@@ -8908,6 +8926,7 @@ return {
   toFileList: toFileList,
   fileGet: F2(fileGet),
   readFileAsArrayBuffer: readFileAsArrayBuffer,
+  fetchArrayBuffer: fetchArrayBuffer,
 	toDataView: toDataView,
 	decodeInt: F2(decodeInt),
 	uint8: uint8,
@@ -9063,6 +9082,7 @@ var _jinjor$binary_decoder$BinaryDecoder_Byte$decode = F2(
 var _jinjor$binary_decoder$BinaryDecoder_Byte$ArrayBuffer = {ctor: 'ArrayBuffer'};
 var _jinjor$binary_decoder$BinaryDecoder_Byte$DataView = {ctor: 'DataView'};
 var _jinjor$binary_decoder$BinaryDecoder_Byte$DecodeIntOption = {ctor: 'DecodeIntOption'};
+var _jinjor$binary_decoder$BinaryDecoder_File$fetchArrayBuffer = _jinjor$binary_decoder$Native_BinaryDecoder.fetchArrayBuffer;
 var _jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer = _jinjor$binary_decoder$Native_BinaryDecoder.readFileAsArrayBuffer;
 var _jinjor$binary_decoder$BinaryDecoder_File$fileGet = _jinjor$binary_decoder$Native_BinaryDecoder.fileGet;
 var _jinjor$binary_decoder$BinaryDecoder_File$toFileList = _jinjor$binary_decoder$Native_BinaryDecoder.toFileList;
@@ -9648,6 +9668,7 @@ var _jinjor$binary_decoder$SmfDecoder$meta = function (tipe) {
 				_jinjor$binary_decoder$BinaryDecoder$skip(length));
 		});
 };
+var _jinjor$binary_decoder$SmfDecoder$SysEx = {ctor: 'SysEx'};
 var _jinjor$binary_decoder$SmfDecoder$PitchWheelChange = F2(
 	function (a, b) {
 		return {ctor: 'PitchWheelChange', _0: a, _1: b};
@@ -9729,11 +9750,19 @@ var _jinjor$binary_decoder$SmfDecoder$event = F2(
 						A2(_elm_lang$core$Basics_ops['%'], status, 16),
 						0);
 				}),
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq((status / 16) | 0, 15) ? _jinjor$binary_decoder$SmfDecoder$meta(first) : _jinjor$binary_decoder$BinaryDecoder$fail(
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq(status, 240) ? A2(
+			_jinjor$binary_decoder$BinaryDecoder$given,
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+			function (length) {
+				return A2(
+					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
+					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$SysEx),
+					_jinjor$binary_decoder$BinaryDecoder$skip(length));
+			}) : (_elm_lang$core$Native_Utils.eq(status, 255) ? _jinjor$binary_decoder$SmfDecoder$meta(first) : _jinjor$binary_decoder$BinaryDecoder$fail(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'unknown data type: 0x',
-				_rtfeldman$hex$Hex$toString(status))))))))));
+				_rtfeldman$hex$Hex$toString(status)))))))))));
 	});
 var _jinjor$binary_decoder$SmfDecoder$deltaTimeAndData = function (prevStatus) {
 	return A2(
@@ -11367,6 +11396,7 @@ var _jinjor$binary_decoder$Main$init = {
 };
 var _jinjor$binary_decoder$Main$Smf = {ctor: 'Smf'};
 var _jinjor$binary_decoder$Main$Png = {ctor: 'Png'};
+var _jinjor$binary_decoder$Main$LoadMidi = {ctor: 'LoadMidi'};
 var _jinjor$binary_decoder$Main$ReadBuffer = F2(
 	function (a, b) {
 		return {ctor: 'ReadBuffer', _0: a, _1: b};
@@ -11374,61 +11404,74 @@ var _jinjor$binary_decoder$Main$ReadBuffer = F2(
 var _jinjor$binary_decoder$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		if (_p0.ctor === 'GotFile') {
-			return {
-				ctor: '_Tuple2',
-				_0: model,
-				_1: A2(
-					_elm_lang$core$Task$attempt,
-					_jinjor$binary_decoder$Main$ReadBuffer(_p0._0),
-					_jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer(_p0._1))
-			};
-		} else {
-			if (_p0._1.ctor === 'Ok') {
-				var _p2 = _p0._1._0;
-				var _p1 = _p0._0;
-				if (_p1.ctor === 'Png') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								png: _elm_lang$core$Maybe$Just(
-									A2(
-										_elm_lang$core$Result$mapError,
-										function (e) {
-											return {ctor: '_Tuple2', _0: e, _1: _p2};
-										},
-										A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$PngDecoder$png, _p2)))
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
+		switch (_p0.ctor) {
+			case 'GotFile':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(
+						_elm_lang$core$Task$attempt,
+						_jinjor$binary_decoder$Main$ReadBuffer(_p0._0),
+						A2(
+							_elm_lang$core$Task$mapError,
+							_elm_lang$core$Basics$toString,
+							_jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer(_p0._1)))
+				};
+			case 'LoadMidi':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(
+						_elm_lang$core$Task$attempt,
+						_jinjor$binary_decoder$Main$ReadBuffer(_jinjor$binary_decoder$Main$Smf),
+						_jinjor$binary_decoder$BinaryDecoder_File$fetchArrayBuffer('sample.mid'))
+				};
+			default:
+				if (_p0._1.ctor === 'Ok') {
+					var _p2 = _p0._1._0;
+					var _p1 = _p0._0;
+					if (_p1.ctor === 'Png') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									png: _elm_lang$core$Maybe$Just(
+										A2(
+											_elm_lang$core$Result$mapError,
+											function (e) {
+												return {ctor: '_Tuple2', _0: e, _1: _p2};
+											},
+											A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$PngDecoder$png, _p2)))
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									smf: _elm_lang$core$Maybe$Just(
+										A2(
+											_elm_lang$core$Result$mapError,
+											function (e) {
+												return {ctor: '_Tuple2', _0: e, _1: _p2};
+											},
+											A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$SmfDecoder$smf, _p2)))
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					}
 				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								smf: _elm_lang$core$Maybe$Just(
-									A2(
-										_elm_lang$core$Result$mapError,
-										function (e) {
-											return {ctor: '_Tuple2', _0: e, _1: _p2};
-										},
-										A2(_jinjor$binary_decoder$BinaryDecoder_Byte$decode, _jinjor$binary_decoder$SmfDecoder$smf, _p2)))
-							}),
-						_1: _elm_lang$core$Platform_Cmd$none
-					};
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Main',
+						{
+							start: {line: 52, column: 3},
+							end: {line: 82, column: 47}
+						},
+						_p0)('failed to read arrayBuffer');
 				}
-			} else {
-				return _elm_lang$core$Native_Utils.crashCase(
-					'Main',
-					{
-						start: {line: 51, column: 3},
-						end: {line: 76, column: 47}
-					},
-					_p0)('failed to read arrayBuffer');
-			}
 		}
 	});
 var _jinjor$binary_decoder$Main$GotFile = F2(
@@ -11503,27 +11546,42 @@ var _jinjor$binary_decoder$Main$view = function (model) {
 								_jinjor$binary_decoder$Main$GotFile(_jinjor$binary_decoder$Main$Smf)),
 							_1: {
 								ctor: '::',
-								_0: function () {
-									var _p5 = model.smf;
-									_v3_2:
-									do {
-										if (_p5.ctor === 'Just') {
-											if (_p5._0.ctor === 'Ok') {
-												return _jinjor$binary_decoder$Demo_MidiRenderer$renderSmf(_p5._0._0);
-											} else {
-												if (_p5._0._0.ctor === '_Tuple2') {
-													return A2(_jinjor$binary_decoder$Demo_ErrorFormatter$print, _p5._0._0._1, _p5._0._0._0);
+								_0: A2(
+									_elm_lang$html$Html$button,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(_jinjor$binary_decoder$Main$LoadMidi),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Load Sample'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: function () {
+										var _p5 = model.smf;
+										_v3_2:
+										do {
+											if (_p5.ctor === 'Just') {
+												if (_p5._0.ctor === 'Ok') {
+													return _jinjor$binary_decoder$Demo_MidiRenderer$renderSmf(_p5._0._0);
 												} else {
-													break _v3_2;
+													if (_p5._0._0.ctor === '_Tuple2') {
+														return A2(_jinjor$binary_decoder$Demo_ErrorFormatter$print, _p5._0._0._1, _p5._0._0._0);
+													} else {
+														break _v3_2;
+													}
 												}
+											} else {
+												break _v3_2;
 											}
-										} else {
-											break _v3_2;
-										}
-									} while(false);
-									return _elm_lang$html$Html$text('');
-								}(),
-								_1: {ctor: '[]'}
+										} while(false);
+										return _elm_lang$html$Html$text('');
+									}(),
+									_1: {ctor: '[]'}
+								}
 							}
 						}
 					}

@@ -1,7 +1,7 @@
 module BinaryDecoder.File exposing
   ( FileList, File, Error
   , fileList, targetFile, targetFiles
-  , fileGet, readFileAsArrayBuffer
+  , fileGet, readFileAsArrayBuffer, fetchArrayBuffer
   )
 
 
@@ -71,6 +71,12 @@ type Error = Error
 readFileAsArrayBuffer : File -> Task Error ArrayBuffer
 readFileAsArrayBuffer =
   Native.BinaryDecoder.readFileAsArrayBuffer
+
+
+{-|-}
+fetchArrayBuffer : String -> Task String ArrayBuffer
+fetchArrayBuffer =
+  Native.BinaryDecoder.fetchArrayBuffer
 
 
 -- {-|-}
