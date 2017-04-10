@@ -18,12 +18,24 @@ type alias Context =
   GenericDecoder.Context Int
 
 
-{-|-}
+{-| Sperial decoder type for bits.
+
+-}
 type alias BitDecoder a
   = GenericDecoder Int a
 
 
-{-|-}
+{-| Decode bits from 32 bit Integer.
+
+```
+source : Int
+source =
+  Bitwise.shiftLeftBy 31 1 -- 10000000 00000000 00000000 00000000
+
+Bit.decode Bit.bool source -- True
+```
+
+-}
 decode : BitDecoder a -> Int -> Result Error a
 decode =
   GenericDecoder.decode
@@ -33,7 +45,18 @@ decode =
 -- UTILITY
 
 
-{-|-}
+{-| Decode integer with given length of bits.
+
+source : Int
+source =
+  Bitwise.shiftLeftBy 31 1 -- 10000000 00000000 00000000 00000000
+
+Bit.decode (Bit.int 1) source -- 1
+Bit.decode (Bit.int 2) source -- 2
+Bit.decode (Bit.int 3) source -- 4
+
+Bit.decode (Bit.int 32) 42 -- 42
+-}
 int : Int -> BitDecoder Int
 int length =
   if length < 0 then
@@ -60,7 +83,24 @@ intHelp from length source =
       |> Ok
 
 
-{-|-}
+{-| Decode bool from 1 bit.
+
+source : Int
+source =
+  Bitwise.shiftLeftBy 28 9 -- 10010000 00000000 00000000 00000000
+
+Bit.decode Bit.bool source -- True
+
+Bit.decode (
+  succeed (,,,,)
+    |= bool
+    |= bool
+    |= bool
+    |= bool
+    |= bool
+) source -- (True, False, False, True, False)
+
+-}
 bool : BitDecoder Bool
 bool =
   map (\i -> i > 0) (int 1)
@@ -73,19 +113,35 @@ symbolInt ints =
     sequence ( List.map (always (int 1)) ints )
 
 
-{-|-}
+{-| Succeeds if all bits of given length are zero.
+
+Bit.decode (zeros 32) 0 -- Ok
+Bit.decode (zeros 32) 1 -- Err
+Bit.decode (zeros 31) 1 -- Ok
+
+-}
 zeros : Int -> BitDecoder ()
 zeros length =
   symbolInt (List.repeat length 0)
 
 
-{-|-}
+{-| Succeeds if all bits of given length are one.
+
+Bit.decode (ones 8) (Bitwise.shiftLeftBy 24 255) -- Ok
+Bit.decode (ones 8) (Bitwise.shiftLeftBy 24 254) -- Err
+Bit.decode (ones 9) (Bitwise.shiftLeftBy 24 255) -- Err
+
+-}
 ones : Int -> BitDecoder ()
 ones length =
   symbolInt (List.repeat length 1)
 
 
-{-|-}
+{-| Decode integer and return related value.
+
+Bit.decode (choose 32 [(0, Default), (1, Special)]) 1 -- Special
+
+-}
 choose : Int -> List (Int, a) -> BitDecoder a
 choose length list =
   given (int length) (\i ->
