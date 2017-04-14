@@ -43,7 +43,7 @@ formatChunk : Decoder Format
 formatChunk =
   succeed identity
     |. symbol "fmt "
-    |= given uint32BE (\size ->
+    |= (uint32BE |> andThen (\size ->
         succeed (Format size)
           |= uint16BE
           |= uint16BE
@@ -52,7 +52,7 @@ formatChunk =
           |= uint16BE
           |= uint16BE
           |= if size > 16 then uint16BE else succeed 0
-      )
+      ))
 
 
 dataChunk : Decoder Data

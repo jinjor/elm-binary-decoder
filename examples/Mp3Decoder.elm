@@ -27,11 +27,16 @@ type alias ExpansionHeader =
 type alias TagId3v2Header =
   { majorVersion : Int
   , minorVersion : Int
-  , sync : Bool
+  , flags : TagId3v2HeaderFlags
+  , size : Int
+  }
+
+
+type alias TagId3v2HeaderFlags =
+  { sync : Bool
   , expansion : Bool
   , experimental : Bool
   , footer : Bool
-  , size : Int
   }
 
 
@@ -82,14 +87,15 @@ mp3 =
 
 tagId3v2 : Decoder TagId3v2
 tagId3v2 =
-  given tagId3v2Header (\header ->
-    succeed (TagId3v2 header)
-      |= ( if header.expansion then
-             expansionHeader |> map Just
-           else
-             succeed Nothing )
-      |= many tagId3v2Frame
-      |. skip ( if header.footer then 10 else 0 )
+  tagId3v2Header
+    |> andThen (\header ->
+      succeed (TagId3v2 header)
+        |= ( if header.flags.expansion then
+               expansionHeader |> map Just
+             else
+               succeed Nothing )
+        |= many tagId3v2Frame
+        |. skip ( if header.flags.footer then 10 else 0 )
     )
 
 
@@ -99,9 +105,8 @@ tagId3v2Header =
     |. symbol "ID3"
     |= uint8
     |= uint8
-    |+ (\f ->
-        bits 1 <|
-          succeed f
+    |= ( bits 1 <|
+          succeed TagId3v2HeaderFlags
             |= Bit.bool
             |= Bit.bool
             |= Bit.bool
@@ -112,10 +117,11 @@ tagId3v2Header =
 
 expansionHeader : Decoder ExpansionHeader
 expansionHeader =
-  given uint32BE (\size ->
-    succeed ExpansionHeader
-      |. skip size
-  )
+  uint32BE
+    |> andThen (\size ->
+      succeed ExpansionHeader
+        |. skip size
+    )
 
 
 type alias TagId3v2Frame =
@@ -150,10 +156,11 @@ type alias TagId3v2FrameBody =
 
 tagId3v2Frame : Decoder TagId3v2Frame
 tagId3v2Frame =
-  given tagId3v2FrameHeader (\header ->
-    succeed (TagId3v2Frame header)
-      |. skip header.size
-      |= succeed TagId3v2FrameBody
+  tagId3v2FrameHeader
+    |> andThen (\header ->
+      succeed (TagId3v2Frame header)
+        |. skip header.size
+        |= succeed TagId3v2FrameBody
     )
 
 
@@ -215,21 +222,22 @@ frameHeader =
 
 channelMode : BitDecoder ChannelMode
 channelMode =
-  given (int 2) (\i ->
-    if i == 1 then
-      succeed JointStereo
-        |= int 2
-    else
-      succeed (
-        if i == 0 then
-          Stereo
-        else if i == 2 then
-          DualChannel
-        else
-          SingleChannel
-      )
-        |. zeros 2
-  )
+  int 2
+    |> andThen (\i ->
+      if i == 1 then
+        succeed JointStereo
+          |= int 2
+      else
+        succeed (
+          if i == 0 then
+            Stereo
+          else if i == 2 then
+            DualChannel
+          else
+            SingleChannel
+        )
+          |. zeros 2
+    )
 
 
 syncSafeInt : Decoder Int

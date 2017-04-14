@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Json.Decode as Decode
+
 import Task
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -8,8 +8,6 @@ import Html.Events exposing (..)
 import BinaryDecoder.File as File exposing (File)
 import BinaryDecoder.Byte as Byte exposing (ArrayBuffer, Error)
 import SmfDecoder exposing (Smf)
-import Mp3Decoder
-import WaveDecoder
 import PngDecoder exposing (Png)
 import Demo.ErrorFormatter as ErrorFormatter
 import Demo.MidiRenderer as MidiRenderer

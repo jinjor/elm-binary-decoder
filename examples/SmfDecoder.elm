@@ -46,10 +46,11 @@ type MidiEvent
 
 smf : Decoder Smf
 smf =
-  given header (\header ->
-    succeed (Smf header)
-      |= from (header.length + 8) (repeat header.trackNumber track)
-  )
+  header
+    |> andThen (\header ->
+      succeed (Smf header)
+        |= from (header.length + 8) (repeat header.trackNumber track)
+    )
 
 
 header : Decoder Header
@@ -78,30 +79,32 @@ eventList =
 
 eventListHelp : Int -> List (Int, MidiEvent) -> Decoder (List (Int, MidiEvent))
 eventListHelp prevStatus prev =
-  given (deltaTimeAndData prevStatus) (\(prevStatus, e) ->
-    case e of
-      (_, End) ->
-        succeed (e :: prev)
+  deltaTimeAndData prevStatus
+    |> andThen (\(prevStatus, e) ->
+      case e of
+        (_, End) ->
+          succeed (e :: prev)
 
-      _ ->
-        eventListHelp prevStatus (e :: prev)
+        _ ->
+          eventListHelp prevStatus (e :: prev)
     )
 
 
 deltaTimeAndData : Int -> Decoder (Int, (Int, MidiEvent))
 deltaTimeAndData prevStatus =
-  given deltaTime (\dtime ->
-  given uint8 (\status ->
-    if status // 16 < 8 then
-      if prevStatus >= 0 then
-        event prevStatus status
-          |> map (\event -> (prevStatus, (dtime, event)))
+  deltaTime
+    |> andThen (\dtime -> uint8
+    |> andThen (\status ->
+      if status // 16 < 8 then
+        if prevStatus >= 0 then
+          event prevStatus status
+            |> map (\event -> (prevStatus, (dtime, event)))
+        else
+          fail "Running Status needs previous data."
       else
-        fail "Running Status needs previous data."
-    else
-      given uint8 (event status)
-        |> map (\event -> (status, (dtime, event)))
-  ))
+        uint8 |> andThen (event status)
+          |> map (\event -> (status, (dtime, event)))
+    ))
 
 
 event : Int -> Int -> Decoder MidiEvent
@@ -131,7 +134,7 @@ event status first =
     succeed (\msb -> PitchWheelChange (status % 16) 0) -- TODO
       |= uint8
   else if status == 0xF0 then
-    given uint8 (\length ->
+    uint8 |> andThen (\length ->
         succeed SysEx
           |. skip length
       )
@@ -143,13 +146,14 @@ event status first =
 
 meta : Int -> Decoder MidiEvent
 meta tipe =
-  given uint8 (\length ->
-    if tipe == 0x2F then
-      succeed End
-    else
-      succeed (Meta tipe)
-        |. skip length
-  )
+  uint8
+    |> andThen (\length ->
+      if tipe == 0x2F then
+        succeed End
+      else
+        succeed (Meta tipe)
+          |. skip length
+    )
 
 
 deltaTime : Decoder Int
@@ -159,9 +163,10 @@ deltaTime =
 
 deltaTimeHelp : Int -> Decoder Int
 deltaTimeHelp prev =
-  given uint8 (\i ->
-    if Bitwise.and 0x80 i == 0x80 then
-      deltaTimeHelp (Bitwise.shiftLeftBy 7 prev + Bitwise.xor 0x80 i)
-    else
-      succeed (Bitwise.shiftLeftBy 7 prev + i)
-  )
+  uint8
+    |> andThen (\i ->
+      if Bitwise.and 0x80 i == 0x80 then
+        deltaTimeHelp (Bitwise.shiftLeftBy 7 prev + Bitwise.xor 0x80 i)
+      else
+        succeed (Bitwise.shiftLeftBy 7 prev + i)
+    )

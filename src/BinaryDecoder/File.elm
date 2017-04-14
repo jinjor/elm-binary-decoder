@@ -1,7 +1,7 @@
 module BinaryDecoder.File exposing
-  ( FileList, File, Error
+  ( FileList, File
   , fileList, targetFile, targetFiles
-  , fileGet, readFileAsArrayBuffer, fetchArrayBuffer
+  , getAt, readFileAsArrayBuffer, fetchArrayBuffer
   )
 
 
@@ -14,15 +14,18 @@ import Native.BinaryDecoder
 import Task exposing (Task)
 
 
-{-|-}
+{-| [FileList](https://developer.mozilla.org/en-US/docs/Web/API/FileList) type from Web API.
+-}
 type FileList = FileList
 
 
-{-|-}
+{-| [File](https://developer.mozilla.org/en-US/docs/Web/API/File) type from Web API.
+-}
 type File = File
 
 
-{-|-}
+{-| Decode JSON value as FileList.
+-}
 fileList : Decoder FileList
 fileList =
   Decode.value
@@ -33,18 +36,34 @@ fileList =
     )
 
 
-{-|-}
+{-| Get `.target.files` and take the first file.
+
+Typical usage:
+
+```elm
+fileLoadButton : String -> (File -> msg) -> Html msg
+fileLoadButton accept_ tagger =
+  input
+    [ type_ "file"
+    , accept accept_
+    , on "change" (File.targetFile tagger)
+    ]
+    [ text "load" ]
+```
+
+-}
 targetFile : (File -> msg) -> Decoder msg
 targetFile tagger =
   Decode.at ["target", "files"] fileList
     |> Decode.andThen (\fileList ->
-      fileGet 0 fileList
+      getAt 0 fileList
         |> Maybe.map (tagger >> Decode.succeed)
         |> Maybe.withDefault (Decode.fail "file list is empty")
     )
 
 
-{-|-}
+{-| Decode `.target.files`.
+-}
 targetFiles : (FileList -> msg) -> Decoder msg
 targetFiles tagger =
   Decode.map tagger <|
@@ -57,23 +76,22 @@ toFileList =
   Native.BinaryDecoder.toFileList
 
 
-{-|-}
-fileGet : Int -> FileList -> Maybe File
-fileGet =
-  Native.BinaryDecoder.fileGet
+{-| Get file from given index of FileList.
+-}
+getAt : Int -> FileList -> Maybe File
+getAt =
+  Native.BinaryDecoder.getAt
 
 
-{-|-}
-type Error = Error
-
-
-{-|-}
-readFileAsArrayBuffer : File -> Task Error ArrayBuffer
+{-| Read file as ArrayBuffer.
+-}
+readFileAsArrayBuffer : File -> Task String ArrayBuffer
 readFileAsArrayBuffer =
   Native.BinaryDecoder.readFileAsArrayBuffer
 
 
-{-|-}
+{-| Send HTTP request (GET) and get ArrayBuffer.
+-}
 fetchArrayBuffer : String -> Task String ArrayBuffer
 fetchArrayBuffer =
   Native.BinaryDecoder.fetchArrayBuffer

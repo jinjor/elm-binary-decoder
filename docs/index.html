@@ -8604,9 +8604,6 @@ var _jinjor$binary_decoder$BinaryDecoder$andThen = F2(
 					_p13._0(context));
 			});
 	});
-var _jinjor$binary_decoder$BinaryDecoder$given = _elm_lang$core$Basics$flip(_jinjor$binary_decoder$BinaryDecoder$andThen);
-var _jinjor$binary_decoder$BinaryDecoder_ops = _jinjor$binary_decoder$BinaryDecoder_ops || {};
-_jinjor$binary_decoder$BinaryDecoder_ops['|+'] = _elm_lang$core$Basics$flip(_jinjor$binary_decoder$BinaryDecoder$andThen);
 var _jinjor$binary_decoder$BinaryDecoder_ops = _jinjor$binary_decoder$BinaryDecoder_ops || {};
 _jinjor$binary_decoder$BinaryDecoder_ops['|.'] = F2(
 	function (decoder, ignored) {
@@ -8770,8 +8767,7 @@ var _jinjor$binary_decoder$BinaryDecoder_Bit$ones = function (length) {
 var _jinjor$binary_decoder$BinaryDecoder_Bit$choose = F2(
 	function (length, list) {
 		return A2(
-			_jinjor$binary_decoder$BinaryDecoder$given,
-			_jinjor$binary_decoder$BinaryDecoder_Bit$int(length),
+			_jinjor$binary_decoder$BinaryDecoder$andThen,
 			function (i) {
 				return A2(
 					_elm_lang$core$Maybe$withDefault,
@@ -8787,7 +8783,8 @@ var _jinjor$binary_decoder$BinaryDecoder_Bit$choose = F2(
 							_elm_lang$core$Dict$get,
 							i,
 							_elm_lang$core$Dict$fromList(list))));
-			});
+			},
+			_jinjor$binary_decoder$BinaryDecoder_Bit$int(length));
 	});
 var _jinjor$binary_decoder$BinaryDecoder_Bit$decode = _jinjor$binary_decoder$BinaryDecoder_GenericDecoder$decode;
 var _jinjor$binary_decoder$Native_BinaryDecoder = function() {
@@ -8802,7 +8799,7 @@ function toFileList(value) {
   }
 }
 
-function fileGet(index, fileList) {
+function getAt(index, fileList) {
   var file = fileList[index];
   if(file) {
     return _elm_lang$core$Maybe$Just(file);
@@ -8839,7 +8836,6 @@ function readFileAsArrayBuffer(file) {
 }
 
 function fetchArrayBuffer(url) {
-  console.log(url);
   return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback){
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'arraybuffer';
@@ -8848,11 +8844,9 @@ function fetchArrayBuffer(url) {
       callback(_elm_lang$core$Native_Scheduler.succeed(this.response));
     };
     xhr.onError = function(e) {
-      console.log(e);
-      callback(_elm_lang$core$Native_Scheduler.fail(Date.now()));
+      callback(_elm_lang$core$Native_Scheduler.fail(e.toString()));
     };
     xhr.send();
-
   });
 }
 
@@ -8924,7 +8918,7 @@ function int32(littleEndian) {
 
 return {
   toFileList: toFileList,
-  fileGet: F2(fileGet),
+  getAt: F2(getAt),
   readFileAsArrayBuffer: readFileAsArrayBuffer,
   fetchArrayBuffer: fetchArrayBuffer,
 	toDataView: toDataView,
@@ -8998,8 +8992,7 @@ var _jinjor$binary_decoder$BinaryDecoder_Byte$symbolInt = function (list) {
 };
 var _jinjor$binary_decoder$BinaryDecoder_Byte$choose = function (list) {
 	return A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+		_jinjor$binary_decoder$BinaryDecoder$andThen,
 		function (i) {
 			return A2(
 				_elm_lang$core$Maybe$withDefault,
@@ -9015,7 +9008,8 @@ var _jinjor$binary_decoder$BinaryDecoder_Byte$choose = function (list) {
 						_elm_lang$core$Dict$get,
 						i,
 						_elm_lang$core$Dict$fromList(list))));
-		});
+		},
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 };
 var _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE = _jinjor$binary_decoder$BinaryDecoder_Byte$int(
 	_jinjor$binary_decoder$Native_BinaryDecoder.uint16(false));
@@ -9084,7 +9078,7 @@ var _jinjor$binary_decoder$BinaryDecoder_Byte$DataView = {ctor: 'DataView'};
 var _jinjor$binary_decoder$BinaryDecoder_Byte$DecodeIntOption = {ctor: 'DecodeIntOption'};
 var _jinjor$binary_decoder$BinaryDecoder_File$fetchArrayBuffer = _jinjor$binary_decoder$Native_BinaryDecoder.fetchArrayBuffer;
 var _jinjor$binary_decoder$BinaryDecoder_File$readFileAsArrayBuffer = _jinjor$binary_decoder$Native_BinaryDecoder.readFileAsArrayBuffer;
-var _jinjor$binary_decoder$BinaryDecoder_File$fileGet = _jinjor$binary_decoder$Native_BinaryDecoder.fileGet;
+var _jinjor$binary_decoder$BinaryDecoder_File$getAt = _jinjor$binary_decoder$Native_BinaryDecoder.getAt;
 var _jinjor$binary_decoder$BinaryDecoder_File$toFileList = _jinjor$binary_decoder$Native_BinaryDecoder.toFileList;
 var _jinjor$binary_decoder$BinaryDecoder_File$fileList = A2(
 	_elm_lang$core$Json_Decode$andThen,
@@ -9110,7 +9104,7 @@ var _jinjor$binary_decoder$BinaryDecoder_File$targetFile = function (tagger) {
 						return _elm_lang$core$Json_Decode$succeed(
 							tagger(_p1));
 					},
-					A2(_jinjor$binary_decoder$BinaryDecoder_File$fileGet, 0, fileList)));
+					A2(_jinjor$binary_decoder$BinaryDecoder_File$getAt, 0, fileList)));
 		},
 		A2(
 			_elm_lang$core$Json_Decode$at,
@@ -9144,7 +9138,6 @@ var _jinjor$binary_decoder$BinaryDecoder_File$targetFiles = function (tagger) {
 };
 var _jinjor$binary_decoder$BinaryDecoder_File$FileList = {ctor: 'FileList'};
 var _jinjor$binary_decoder$BinaryDecoder_File$File = {ctor: 'File'};
-var _jinjor$binary_decoder$BinaryDecoder_File$Error = {ctor: 'Error'};
 var _rtfeldman$hex$Hex$toString = function (num) {
 	return _elm_lang$core$String$fromList(
 		(_elm_lang$core$Native_Utils.cmp(num, 0) < 0) ? {
@@ -9617,11 +9610,11 @@ var _jinjor$binary_decoder$Demo_ErrorFormatter$print = F2(
 	});
 var _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp = function (prev) {
 	return A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+		_jinjor$binary_decoder$BinaryDecoder$andThen,
 		function (i) {
 			return _elm_lang$core$Native_Utils.eq(128 & i, 128) ? _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp((prev << 7) + (128 ^ i)) : _jinjor$binary_decoder$BinaryDecoder$succeed((prev << 7) + i);
-		});
+		},
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 };
 var _jinjor$binary_decoder$SmfDecoder$deltaTime = _jinjor$binary_decoder$SmfDecoder$deltaTimeHelp(0);
 var _jinjor$binary_decoder$SmfDecoder$Smf = F2(
@@ -9658,15 +9651,15 @@ var _jinjor$binary_decoder$SmfDecoder$Meta = function (a) {
 };
 var _jinjor$binary_decoder$SmfDecoder$meta = function (tipe) {
 	return A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+		_jinjor$binary_decoder$BinaryDecoder$andThen,
 		function (length) {
 			return _elm_lang$core$Native_Utils.eq(tipe, 47) ? _jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$End) : A2(
 				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 				_jinjor$binary_decoder$BinaryDecoder$succeed(
 					_jinjor$binary_decoder$SmfDecoder$Meta(tipe)),
 				_jinjor$binary_decoder$BinaryDecoder$skip(length));
-		});
+		},
+		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
 };
 var _jinjor$binary_decoder$SmfDecoder$SysEx = {ctor: 'SysEx'};
 var _jinjor$binary_decoder$SmfDecoder$PitchWheelChange = F2(
@@ -9751,14 +9744,14 @@ var _jinjor$binary_decoder$SmfDecoder$event = F2(
 						0);
 				}),
 			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq(status, 240) ? A2(
-			_jinjor$binary_decoder$BinaryDecoder$given,
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+			_jinjor$binary_decoder$BinaryDecoder$andThen,
 			function (length) {
 				return A2(
 					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
 					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$SmfDecoder$SysEx),
 					_jinjor$binary_decoder$BinaryDecoder$skip(length));
-			}) : (_elm_lang$core$Native_Utils.eq(status, 255) ? _jinjor$binary_decoder$SmfDecoder$meta(first) : _jinjor$binary_decoder$BinaryDecoder$fail(
+			},
+			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8) : (_elm_lang$core$Native_Utils.eq(status, 255) ? _jinjor$binary_decoder$SmfDecoder$meta(first) : _jinjor$binary_decoder$BinaryDecoder$fail(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'unknown data type: 0x',
@@ -9766,12 +9759,10 @@ var _jinjor$binary_decoder$SmfDecoder$event = F2(
 	});
 var _jinjor$binary_decoder$SmfDecoder$deltaTimeAndData = function (prevStatus) {
 	return A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$SmfDecoder$deltaTime,
+		_jinjor$binary_decoder$BinaryDecoder$andThen,
 		function (dtime) {
 			return A2(
-				_jinjor$binary_decoder$BinaryDecoder$given,
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+				_jinjor$binary_decoder$BinaryDecoder$andThen,
 				function (status) {
 					return (_elm_lang$core$Native_Utils.cmp((status / 16) | 0, 8) < 0) ? ((_elm_lang$core$Native_Utils.cmp(prevStatus, 0) > -1) ? A2(
 						_jinjor$binary_decoder$BinaryDecoder$map,
@@ -9792,17 +9783,18 @@ var _jinjor$binary_decoder$SmfDecoder$deltaTimeAndData = function (prevStatus) {
 							};
 						},
 						A2(
-							_jinjor$binary_decoder$BinaryDecoder$given,
-							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
-							_jinjor$binary_decoder$SmfDecoder$event(status)));
-				});
-		});
+							_jinjor$binary_decoder$BinaryDecoder$andThen,
+							_jinjor$binary_decoder$SmfDecoder$event(status),
+							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8));
+				},
+				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
+		},
+		_jinjor$binary_decoder$SmfDecoder$deltaTime);
 };
 var _jinjor$binary_decoder$SmfDecoder$eventListHelp = F2(
 	function (prevStatus, prev) {
 		return A2(
-			_jinjor$binary_decoder$BinaryDecoder$given,
-			_jinjor$binary_decoder$SmfDecoder$deltaTimeAndData(prevStatus),
+			_jinjor$binary_decoder$BinaryDecoder$andThen,
 			function (_p0) {
 				var _p1 = _p0;
 				var _p3 = _p1._1;
@@ -9816,7 +9808,8 @@ var _jinjor$binary_decoder$SmfDecoder$eventListHelp = F2(
 						_p1._0,
 						{ctor: '::', _0: _p3, _1: prev});
 				}
-			});
+			},
+			_jinjor$binary_decoder$SmfDecoder$deltaTimeAndData(prevStatus));
 	});
 var _jinjor$binary_decoder$SmfDecoder$eventList = A2(
 	_jinjor$binary_decoder$BinaryDecoder$map,
@@ -9836,8 +9829,7 @@ var _jinjor$binary_decoder$SmfDecoder$track = A2(
 		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
 	_jinjor$binary_decoder$SmfDecoder$eventList);
 var _jinjor$binary_decoder$SmfDecoder$smf = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$SmfDecoder$header,
+	_jinjor$binary_decoder$BinaryDecoder$andThen,
 	function (header) {
 		return A2(
 			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -9847,7 +9839,8 @@ var _jinjor$binary_decoder$SmfDecoder$smf = A2(
 				_jinjor$binary_decoder$BinaryDecoder$from,
 				header.length + 8,
 				A2(_jinjor$binary_decoder$BinaryDecoder$repeat, header.trackNumber, _jinjor$binary_decoder$SmfDecoder$track)));
-	});
+	},
+	_jinjor$binary_decoder$SmfDecoder$header);
 var _jinjor$binary_decoder$Demo_MidiRenderer$px = function (num) {
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
@@ -10034,404 +10027,6 @@ var _jinjor$binary_decoder$Demo_MidiRenderer$renderSmf = function (smf) {
 	return _jinjor$binary_decoder$Demo_MidiRenderer$renderMidi(
 		_jinjor$binary_decoder$Demo_MidiRenderer$fromSmf(smf));
 };
-var _jinjor$binary_decoder$Mp3Decoder$syncSafeInt = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					F4(
-						function (a, b, c, d) {
-							return ((a + b) + c) + d;
-						})),
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder$map,
-					function (_p0) {
-						return (255 & _p0) << 21;
-					},
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder$map,
-				function (_p1) {
-					return (255 & _p1) << 14;
-				},
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder$map,
-			function (_p2) {
-				return (255 & _p2) << 7;
-			},
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8)),
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder$map,
-		_elm_lang$core$Bitwise$and(255),
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint8));
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeaderId = A2(
-	_jinjor$binary_decoder$BinaryDecoder$map,
-	_elm_lang$core$String$fromList,
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder$repeat,
-		4,
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder$andThen,
-			function (i) {
-				return (((_elm_lang$core$Native_Utils.cmp(48, i) < 1) && (_elm_lang$core$Native_Utils.cmp(i, 57) < 1)) || ((_elm_lang$core$Native_Utils.cmp(65, i) < 1) && (_elm_lang$core$Native_Utils.cmp(i, 90) < 1))) ? _jinjor$binary_decoder$BinaryDecoder$succeed(
-					_elm_lang$core$Char$fromCode(i)) : _jinjor$binary_decoder$BinaryDecoder$fail('invalid id');
-			},
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8)));
-var _jinjor$binary_decoder$Mp3Decoder$Mp3 = function (a) {
-	return {tagId3v2: a};
-};
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2 = F3(
-	function (a, b, c) {
-		return {header: a, expansion: b, frames: c};
-	});
-var _jinjor$binary_decoder$Mp3Decoder$ExpansionHeader = {};
-var _jinjor$binary_decoder$Mp3Decoder$expansionHeader = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE,
-	function (size) {
-		return A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$ExpansionHeader),
-			_jinjor$binary_decoder$BinaryDecoder$skip(size));
-	});
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2Header = F7(
-	function (a, b, c, d, e, f, g) {
-		return {majorVersion: a, minorVersion: b, sync: c, expansion: d, experimental: e, footer: f, size: g};
-	});
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2Header = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|+'],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$TagId3v2Header),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('ID3')),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-			_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
-		function (f) {
-			return A2(
-				_jinjor$binary_decoder$BinaryDecoder_Byte$bits,
-				1,
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					A2(
-						_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-						A2(
-							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-							A2(
-								_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-								_jinjor$binary_decoder$BinaryDecoder$succeed(f),
-								_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-							_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-						_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-					_jinjor$binary_decoder$BinaryDecoder_Bit$bool));
-		}),
-	_jinjor$binary_decoder$Mp3Decoder$syncSafeInt);
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2Footer = {};
-var _jinjor$binary_decoder$Mp3Decoder$FrameHeader = function (a) {
-	return function (b) {
-		return function (c) {
-			return function (d) {
-				return function (e) {
-					return function (f) {
-						return function (g) {
-							return function (h) {
-								return function (i) {
-									return function (j) {
-										return function (k) {
-											return {version: a, layer: b, protection: c, bitRate: d, sampleRate: e, padding: f, extension: g, channelMode: h, copyright: i, original: j, emphasis: k};
-										};
-									};
-								};
-							};
-						};
-					};
-				};
-			};
-		};
-	};
-};
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2Frame = F2(
-	function (a, b) {
-		return {header: a, body: b};
-	});
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameHeader = F3(
-	function (a, b, c) {
-		return {id: a, size: b, flags: c};
-	});
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameHeaderFlags = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {a1: a, a2: b, a3: c, a4: d, a5: e, a6: f, a7: g, a8: h};
-	});
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeaderFlags = A2(
-	_jinjor$binary_decoder$BinaryDecoder_Byte$bits,
-	2,
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					A2(
-						_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-						A2(
-							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-							A2(
-								_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-								A2(
-									_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-									A2(
-										_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-										A2(
-											_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-											A2(
-												_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-												_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameHeaderFlags),
-												_jinjor$binary_decoder$BinaryDecoder$goTo(1)),
-											_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-										_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-									_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-								_jinjor$binary_decoder$BinaryDecoder$goTo(9)),
-							_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-						_jinjor$binary_decoder$BinaryDecoder$goTo(12)),
-					_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-				_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-			_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-		_jinjor$binary_decoder$BinaryDecoder_Bit$bool));
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeader = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameHeader),
-			_jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeaderId),
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
-	_jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeaderFlags);
-var _jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameBody = {};
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2Frame = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$Mp3Decoder$tagId3v2FrameHeader,
-	function (header) {
-		return A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-				_jinjor$binary_decoder$BinaryDecoder$succeed(
-					_jinjor$binary_decoder$Mp3Decoder$TagId3v2Frame(header)),
-				_jinjor$binary_decoder$BinaryDecoder$skip(header.size)),
-			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$TagId3v2FrameBody));
-	});
-var _jinjor$binary_decoder$Mp3Decoder$tagId3v2 = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$Mp3Decoder$tagId3v2Header,
-	function (header) {
-		return A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(
-						_jinjor$binary_decoder$Mp3Decoder$TagId3v2(header)),
-					header.expansion ? A2(_jinjor$binary_decoder$BinaryDecoder$map, _elm_lang$core$Maybe$Just, _jinjor$binary_decoder$Mp3Decoder$expansionHeader) : _jinjor$binary_decoder$BinaryDecoder$succeed(_elm_lang$core$Maybe$Nothing)),
-				_jinjor$binary_decoder$BinaryDecoder$many(_jinjor$binary_decoder$Mp3Decoder$tagId3v2Frame)),
-			_jinjor$binary_decoder$BinaryDecoder$skip(
-				header.footer ? 10 : 0));
-	});
-var _jinjor$binary_decoder$Mp3Decoder$mp3 = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$Mp3),
-	_jinjor$binary_decoder$Mp3Decoder$tagId3v2);
-var _jinjor$binary_decoder$Mp3Decoder$MPEGv1 = {ctor: 'MPEGv1'};
-var _jinjor$binary_decoder$Mp3Decoder$MPEGv2 = {ctor: 'MPEGv2'};
-var _jinjor$binary_decoder$Mp3Decoder$MPEGv25 = {ctor: 'MPEGv25'};
-var _jinjor$binary_decoder$Mp3Decoder$Layer1 = {ctor: 'Layer1'};
-var _jinjor$binary_decoder$Mp3Decoder$Layer2 = {ctor: 'Layer2'};
-var _jinjor$binary_decoder$Mp3Decoder$Layer3 = {ctor: 'Layer3'};
-var _jinjor$binary_decoder$Mp3Decoder$SingleChannel = {ctor: 'SingleChannel'};
-var _jinjor$binary_decoder$Mp3Decoder$DualChannel = {ctor: 'DualChannel'};
-var _jinjor$binary_decoder$Mp3Decoder$Stereo = {ctor: 'Stereo'};
-var _jinjor$binary_decoder$Mp3Decoder$JointStereo = function (a) {
-	return {ctor: 'JointStereo', _0: a};
-};
-var _jinjor$binary_decoder$Mp3Decoder$channelMode = A2(
-	_jinjor$binary_decoder$BinaryDecoder$given,
-	_jinjor$binary_decoder$BinaryDecoder_Bit$int(2),
-	function (i) {
-		return _elm_lang$core$Native_Utils.eq(i, 1) ? A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$JointStereo),
-			_jinjor$binary_decoder$BinaryDecoder_Bit$int(2)) : A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-			_jinjor$binary_decoder$BinaryDecoder$succeed(
-				_elm_lang$core$Native_Utils.eq(i, 0) ? _jinjor$binary_decoder$Mp3Decoder$Stereo : (_elm_lang$core$Native_Utils.eq(i, 2) ? _jinjor$binary_decoder$Mp3Decoder$DualChannel : _jinjor$binary_decoder$Mp3Decoder$SingleChannel)),
-			_jinjor$binary_decoder$BinaryDecoder_Bit$zeros(2));
-	});
-var _jinjor$binary_decoder$Mp3Decoder$frameHeader = A2(
-	_jinjor$binary_decoder$BinaryDecoder_Byte$bits,
-	4,
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					A2(
-						_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-						A2(
-							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-							A2(
-								_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-								A2(
-									_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-									A2(
-										_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-										A2(
-											_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-											A2(
-												_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-												A2(
-													_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-													_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$Mp3Decoder$FrameHeader),
-													_jinjor$binary_decoder$BinaryDecoder_Bit$ones(11)),
-												A2(
-													_jinjor$binary_decoder$BinaryDecoder_Bit$choose,
-													2,
-													{
-														ctor: '::',
-														_0: {ctor: '_Tuple2', _0: 0, _1: _jinjor$binary_decoder$Mp3Decoder$MPEGv25},
-														_1: {
-															ctor: '::',
-															_0: {ctor: '_Tuple2', _0: 2, _1: _jinjor$binary_decoder$Mp3Decoder$MPEGv2},
-															_1: {
-																ctor: '::',
-																_0: {ctor: '_Tuple2', _0: 3, _1: _jinjor$binary_decoder$Mp3Decoder$MPEGv1},
-																_1: {ctor: '[]'}
-															}
-														}
-													})),
-											A2(
-												_jinjor$binary_decoder$BinaryDecoder_Bit$choose,
-												2,
-												{
-													ctor: '::',
-													_0: {ctor: '_Tuple2', _0: 1, _1: _jinjor$binary_decoder$Mp3Decoder$Layer3},
-													_1: {
-														ctor: '::',
-														_0: {ctor: '_Tuple2', _0: 2, _1: _jinjor$binary_decoder$Mp3Decoder$Layer2},
-														_1: {
-															ctor: '::',
-															_0: {ctor: '_Tuple2', _0: 3, _1: _jinjor$binary_decoder$Mp3Decoder$Layer1},
-															_1: {ctor: '[]'}
-														}
-													}
-												})),
-										_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-									_jinjor$binary_decoder$BinaryDecoder_Bit$int(4)),
-								_jinjor$binary_decoder$BinaryDecoder_Bit$int(2)),
-							_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-						_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-					_jinjor$binary_decoder$Mp3Decoder$channelMode),
-				_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-			_jinjor$binary_decoder$BinaryDecoder_Bit$bool),
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_Bit$choose,
-			2,
-			{
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 1, _1: '50/15'},
-				_1: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 2, _1: ''},
-					_1: {
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 3, _1: 'CCIT J.17'},
-						_1: {ctor: '[]'}
-					}
-				}
-			})));
-var _jinjor$binary_decoder$WaveDecoder$Wave = F3(
-	function (a, b, c) {
-		return {size: a, format: b, data: c};
-	});
-var _jinjor$binary_decoder$WaveDecoder$Format = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {size: a, format: b, channels: c, sampleRate: d, bytePerSec: e, blockAlign: f, bitsWidth: g, extendedSize: h};
-	});
-var _jinjor$binary_decoder$WaveDecoder$formatChunk = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-		_jinjor$binary_decoder$BinaryDecoder$succeed(_elm_lang$core$Basics$identity),
-		_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('fmt ')),
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder$given,
-		_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE,
-		function (size) {
-			return A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-					A2(
-						_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-						A2(
-							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-							A2(
-								_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-								A2(
-									_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-									A2(
-										_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-										_jinjor$binary_decoder$BinaryDecoder$succeed(
-											_jinjor$binary_decoder$WaveDecoder$Format(size)),
-										_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
-									_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
-								_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
-							_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
-						_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE),
-				(_elm_lang$core$Native_Utils.cmp(size, 16) > 0) ? _jinjor$binary_decoder$BinaryDecoder_Byte$uint16BE : _jinjor$binary_decoder$BinaryDecoder$succeed(0));
-		}));
-var _jinjor$binary_decoder$WaveDecoder$Data = function (a) {
-	return {dataSize: a};
-};
-var _jinjor$binary_decoder$WaveDecoder$dataChunk = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-		_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$WaveDecoder$Data),
-		_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('data')),
-	_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE);
-var _jinjor$binary_decoder$WaveDecoder$wave = A2(
-	_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-	A2(
-		_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-		A2(
-			_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-			A2(
-				_jinjor$binary_decoder$BinaryDecoder_ops['|='],
-				A2(
-					_jinjor$binary_decoder$BinaryDecoder_ops['|.'],
-					_jinjor$binary_decoder$BinaryDecoder$succeed(_jinjor$binary_decoder$WaveDecoder$Wave),
-					_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('RIFF')),
-				_jinjor$binary_decoder$BinaryDecoder_Byte$uint32BE),
-			_jinjor$binary_decoder$BinaryDecoder_Byte$symbol('WAVE')),
-		_jinjor$binary_decoder$WaveDecoder$formatChunk),
-	_jinjor$binary_decoder$WaveDecoder$dataChunk);
 var _jinjor$binary_decoder$PngDecoder$iendChunk = {
 	id: 'IEND',
 	bodyDecoder: F2(
@@ -10673,8 +10268,7 @@ var _jinjor$binary_decoder$PngDecoder$iccpChunk = {
 	bodyDecoder: F2(
 		function (length, png) {
 			return A2(
-				_jinjor$binary_decoder$BinaryDecoder$given,
-				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull,
+				_jinjor$binary_decoder$BinaryDecoder$andThen,
 				function (profile) {
 					return A2(
 						_jinjor$binary_decoder$BinaryDecoder$map,
@@ -10694,7 +10288,8 @@ var _jinjor$binary_decoder$PngDecoder$iccpChunk = {
 								_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 							_jinjor$binary_decoder$BinaryDecoder$skip(
 								(length - _elm_lang$core$String$length(profile)) - 2)));
-				});
+				},
+				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull);
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$TextChunk = F2(
@@ -10706,8 +10301,7 @@ var _jinjor$binary_decoder$PngDecoder$textChunk = {
 	bodyDecoder: F2(
 		function (length, png) {
 			return A2(
-				_jinjor$binary_decoder$BinaryDecoder$given,
-				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull,
+				_jinjor$binary_decoder$BinaryDecoder$andThen,
 				function (keyword) {
 					return A2(
 						_jinjor$binary_decoder$BinaryDecoder$map,
@@ -10724,7 +10318,8 @@ var _jinjor$binary_decoder$PngDecoder$textChunk = {
 								_jinjor$binary_decoder$PngDecoder$TextChunk(keyword)),
 							_jinjor$binary_decoder$BinaryDecoder_Byte$string(
 								(length - _elm_lang$core$String$length(keyword)) - 1)));
-				});
+				},
+				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull);
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$ZtxtChunk = F2(
@@ -10736,8 +10331,7 @@ var _jinjor$binary_decoder$PngDecoder$ztxtChunk = {
 	bodyDecoder: F2(
 		function (length, png) {
 			return A2(
-				_jinjor$binary_decoder$BinaryDecoder$given,
-				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull,
+				_jinjor$binary_decoder$BinaryDecoder$andThen,
 				function (keyword) {
 					return A2(
 						_jinjor$binary_decoder$BinaryDecoder$map,
@@ -10757,7 +10351,8 @@ var _jinjor$binary_decoder$PngDecoder$ztxtChunk = {
 								_jinjor$binary_decoder$BinaryDecoder_Byte$uint8),
 							_jinjor$binary_decoder$BinaryDecoder_Byte$string(
 								(length - _elm_lang$core$String$length(keyword)) - 2)));
-				});
+				},
+				_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull);
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$ItxtChunk = F6(
@@ -10778,8 +10373,7 @@ var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
 						});
 				},
 				A2(
-					_jinjor$binary_decoder$BinaryDecoder$given,
-					_jinjor$binary_decoder$BinaryDecoder$position,
+					_jinjor$binary_decoder$BinaryDecoder$andThen,
 					function (pos) {
 						return A2(
 							_jinjor$binary_decoder$BinaryDecoder_ops['|='],
@@ -10800,12 +10394,13 @@ var _jinjor$binary_decoder$PngDecoder$itxtChunk = {
 									_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull),
 								_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull),
 							A2(
-								_jinjor$binary_decoder$BinaryDecoder$given,
-								_jinjor$binary_decoder$BinaryDecoder$position,
+								_jinjor$binary_decoder$BinaryDecoder$andThen,
 								function (start) {
 									return _jinjor$binary_decoder$BinaryDecoder_Byte$string((pos + length) - start);
-								}));
-					}));
+								},
+								_jinjor$binary_decoder$BinaryDecoder$position));
+					},
+					_jinjor$binary_decoder$BinaryDecoder$position));
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$PhysChunk = F3(
@@ -10886,12 +10481,10 @@ var _jinjor$binary_decoder$PngDecoder$spltChunk = {
 						});
 				},
 				A2(
-					_jinjor$binary_decoder$BinaryDecoder$given,
-					_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull,
+					_jinjor$binary_decoder$BinaryDecoder$andThen,
 					function (paletteName) {
 						return A2(
-							_jinjor$binary_decoder$BinaryDecoder$given,
-							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8,
+							_jinjor$binary_decoder$BinaryDecoder$andThen,
 							function (depth) {
 								var restLength = (length - _elm_lang$core$String$length(paletteName)) - 2;
 								var values = _elm_lang$core$Native_Utils.eq(depth, 8) ? A2(
@@ -10906,8 +10499,10 @@ var _jinjor$binary_decoder$PngDecoder$spltChunk = {
 									_jinjor$binary_decoder$BinaryDecoder$succeed(
 										A2(_jinjor$binary_decoder$PngDecoder$SpltChunk, paletteName, depth)),
 									values);
-							});
-					}));
+							},
+							_jinjor$binary_decoder$BinaryDecoder_Byte$uint8);
+					},
+					_jinjor$binary_decoder$BinaryDecoder_Byte$stringUntilNull));
 		})
 };
 var _jinjor$binary_decoder$PngDecoder$HistChunk = function (a) {
@@ -11467,8 +11062,8 @@ var _jinjor$binary_decoder$Main$update = F2(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Main',
 						{
-							start: {line: 52, column: 3},
-							end: {line: 82, column: 47}
+							start: {line: 50, column: 3},
+							end: {line: 80, column: 47}
 						},
 						_p0)('failed to read arrayBuffer');
 				}

@@ -1,7 +1,5 @@
 module PngDecoder exposing (..)
 
-import Bitwise
-import Char
 import Dict exposing (Dict)
 import BinaryDecoder exposing (..)
 import BinaryDecoder.Byte exposing (..)
@@ -326,7 +324,7 @@ iccpChunk : ChunkProfile
 iccpChunk =
   { id = "iCCP"
   , bodyDecoder = \length png ->
-      given stringUntilNull (\profile ->
+      stringUntilNull |> andThen (\profile ->
         succeed (IccpChunk profile)
           |= uint8
           |. skip (length - String.length profile - 2)
@@ -339,7 +337,7 @@ textChunk : ChunkProfile
 textChunk =
   { id = "tEXT"
   , bodyDecoder = \length png ->
-      given stringUntilNull (\keyword ->
+      stringUntilNull |> andThen (\keyword ->
         succeed (TextChunk keyword)
           |= string (length - String.length keyword - 1)
           |> map (\a -> { png | text = a :: png.text })
@@ -351,7 +349,7 @@ ztxtChunk : ChunkProfile
 ztxtChunk =
   { id = "zTXt"
   , bodyDecoder = \length png ->
-      given stringUntilNull (\keyword ->
+      stringUntilNull |> andThen (\keyword ->
         succeed (ZtxtChunk keyword)
           |= uint8
           |. string (length - String.length keyword - 2)
@@ -364,16 +362,16 @@ itxtChunk : ChunkProfile
 itxtChunk =
   { id = "iTXt"
   , bodyDecoder = \length png ->
-      given position (\pos ->
+      position |> andThen (\pos ->
         succeed ItxtChunk
           |= stringUntilNull
           |= bool
           |= uint8
           |= stringUntilNull
           |= stringUntilNull
-          |= given position (\start ->
+          |= (position |> andThen (\start ->
             string (pos + length - start)
-          )
+          ))
       )
       |> map (\a -> { png | itxt = a :: png.itxt })
   }
@@ -461,24 +459,25 @@ spltChunk : ChunkProfile
 spltChunk =
   { id = "sPLT"
   , bodyDecoder = \length png ->
-      given stringUntilNull (\paletteName ->
-      given uint8 (\depth ->
-        let
-          restLength =
-            length - String.length paletteName - 2
+      stringUntilNull
+        |> andThen (\paletteName -> uint8
+        |> andThen (\depth ->
+          let
+            restLength =
+              length - String.length paletteName - 2
 
-          values =
-            if depth == 8 then
-              repeat (restLength // 6) (spltValue False)
-            else if depth == 16 then
-              repeat (restLength // 10) (spltValue True)
-            else
-              fail ""
-        in
-          succeed (SpltChunk paletteName depth)
-            |= values
-      ))
-      |> map (\a -> { png | splt = a :: png.splt })
+            values =
+              if depth == 8 then
+                repeat (restLength // 6) (spltValue False)
+              else if depth == 16 then
+                repeat (restLength // 10) (spltValue True)
+              else
+                fail ""
+          in
+            succeed (SpltChunk paletteName depth)
+              |= values
+        ))
+        |> map (\a -> { png | splt = a :: png.splt })
   }
 
 

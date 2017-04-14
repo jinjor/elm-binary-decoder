@@ -10,7 +10,7 @@ function toFileList(value) {
   }
 }
 
-function fileGet(index, fileList) {
+function getAt(index, fileList) {
   var file = fileList[index];
   if(file) {
     return _elm_lang$core$Maybe$Just(file);
@@ -55,8 +55,7 @@ function fetchArrayBuffer(url) {
       callback(_elm_lang$core$Native_Scheduler.succeed(this.response));
     };
     xhr.onError = function(e) {
-      console.log(e);
-      callback(_elm_lang$core$Native_Scheduler.fail(Date.now()));
+      callback(_elm_lang$core$Native_Scheduler.fail(e.toString()));
     };
     xhr.send();
   });
@@ -130,7 +129,7 @@ function int32(littleEndian) {
 
 return {
   toFileList: toFileList,
-  fileGet: F2(fileGet),
+  getAt: F2(getAt),
   readFileAsArrayBuffer: readFileAsArrayBuffer,
   fetchArrayBuffer: fetchArrayBuffer,
 	toDataView: toDataView,

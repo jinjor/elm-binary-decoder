@@ -164,7 +164,7 @@ primitivesAndCombinators =
       ( succeed (,,)
           |= many
             ( succeed (,)
-                |= given B.uint8 (\i -> if i == 4 then fail "done" else succeed i)
+                |= (B.uint8 |> andThen (\i -> if i == 4 then fail "done" else succeed i))
                 |= B.uint8
             )
           |= B.uint8
@@ -175,7 +175,7 @@ primitivesAndCombinators =
           |= many
             ( succeed (,)
                 |= B.uint8
-                |= given B.uint8 (\i -> if i == 5 then fail "done" else succeed i)
+                |= (B.uint8 |> andThen (\i -> if i == 5 then fail "done" else succeed i))
             )
           |= B.uint8
           |= B.uint8

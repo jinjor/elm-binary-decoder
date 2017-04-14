@@ -1,14 +1,23 @@
 module BinaryDecoder exposing
   ( succeed, fail
-  , (|=), (|.), (|+)
-  , andThen, given, map, sequence, repeat, many
+  , (|=), (|.)
+  , andThen, map, sequence, repeat, many
   , position, from, goTo, skip
   , lazy
   , equal, match, printError
   )
 
 
-{-|-}
+{-|
+
+@docs succeed,fail
+@docs (|=), (|.)
+@docs andThen, map, sequence, repeat, many
+@docs position, from, goTo, skip
+@docs lazy
+@docs equal, match, printError
+
+-}
 
 
 import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
@@ -18,13 +27,15 @@ import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 -- PRIMITIVE
 
 
-{-|-}
+{-| Create a decoder that always succeeds.
+-}
 succeed : a -> GenericDecoder s a
 succeed a =
   GenericDecoder (\context -> Ok (context, a))
 
 
-{-|-}
+{-| Create a decoder that always failes with given error message.
+-}
 fail : String -> GenericDecoder s a
 fail s =
   GenericDecoder (\context -> Err (Error context.position s))
@@ -52,14 +63,7 @@ fail s =
     )
 
 
-{-|-}
-(|+) : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
-(|+) =
-  flip andThen
-
-
 infixl 5 |=
-infixl 5 |+
 infixl 5 |.
 
 
@@ -76,12 +80,6 @@ andThen f (GenericDecoder f_) =
           decode context_
       )
     )
-
-
-{-|-}
-given : GenericDecoder s a -> (a -> GenericDecoder s b) -> GenericDecoder s b
-given =
-  flip andThen
 
 
 {-|-}
@@ -109,7 +107,7 @@ sequence decoders =
             |> map (\tail -> head :: tail)
         )
 
-
+{-|-}
 repeat : Int -> GenericDecoder s a -> GenericDecoder s (List a)
 repeat n decoder =
   sequence (List.repeat n decoder)
@@ -161,7 +159,8 @@ manyHelp decode context =
 -- POSITION
 
 
-{-|-}
+{-| Get current cursor position.
+-}
 position : GenericDecoder s Int
 position =
   GenericDecoder (\context ->
@@ -169,8 +168,8 @@ position =
   )
 
 
-
-{-|-}
+{-| Decode from given position. The cursor returns to the original position after decoding finishes.
+-}
 from : Int -> GenericDecoder s a -> GenericDecoder s a
 from position (GenericDecoder decode) =
   GenericDecoder
@@ -180,7 +179,8 @@ from position (GenericDecoder decode) =
     )
 
 
-{-|-}
+{-| Decode from given position. Contrust to `from`, the cursor does not return to the original position.
+-}
 goTo : Int -> GenericDecoder s ()
 goTo position =
   GenericDecoder
@@ -189,7 +189,8 @@ goTo position =
     )
 
 
-{-|-}
+{-| Skip given length of bytes.
+-}
 skip : Int -> GenericDecoder s ()
 skip size =
   GenericDecoder
@@ -218,7 +219,8 @@ lazy thunk =
 -- UTILITY
 
 
-{-|-}
+{-| Succeeds if the decoded value is exactly the same as given value.
+-}
 equal : a -> GenericDecoder s a -> GenericDecoder s ()
 equal expected decoder =
   decoder
@@ -229,7 +231,7 @@ equal expected decoder =
           fail ("expected " ++ toString expected ++ ", but got " ++ toString a)
       )
 
-
+{-|-}
 match : (a -> Bool) -> GenericDecoder s a -> GenericDecoder s ()
 match isOk decoder =
   decoder

@@ -9,7 +9,7 @@ Experimental binary decoder inspired by [elm-tools/parser](http://package.elm-la
 ## How to use?
 
 You can write `.wav` file decoder like this.
-See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (They are too rough for real usage.)
+See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (**Caution**: Don't trust any of these implementations! I wrote them only to sho how to use this library but did not confirm if they are correct really.)
 
 ```elm
 wave : Decoder Wave
@@ -26,7 +26,7 @@ formatChunk : Decoder Format
 formatChunk =
   succeed identity
     |. symbol "fmt "
-    |= given uint32BE (\size ->
+    |= (uint32BE |> andThen (\size ->
         succeed (Format size)
           |= uint16BE
           |= uint16BE
@@ -35,7 +35,7 @@ formatChunk =
           |= uint16BE
           |= uint16BE
           |= if size > 16 then uint16BE else succeed 0
-      )
+      ))
 ```
 
 This example only decodes meta data because the cost of using immutable data should be expensive.
