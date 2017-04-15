@@ -9,7 +9,7 @@ Experimental binary decoder inspired by [elm-tools/parser](http://package.elm-la
 ## How to use?
 
 You can write `.wav` file decoder like this.
-See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (**Caution**: Don't trust any of these implementations! I wrote them only to sho how to use this library but did not confirm if they are correct really.)
+See [examples](https://github.com/jinjor/elm-binary-decoder/tree/master/examples). (All examples are far from real use :P)
 
 ```elm
 wave : Decoder Wave
@@ -81,10 +81,6 @@ So, there are many useful functions for using these meta information.
 
 ## Status
 
-This library is still in a very experimental phase.
-
-It would be nice to have following features:
-
-* Fetch data from server
-* Load data from local
-* Read streaming data
+This library won't be published because of some Native(Kernel) code.
+I don't know how binaries will be introduced into Elm in the future.
+I just wanted to share the idea!
