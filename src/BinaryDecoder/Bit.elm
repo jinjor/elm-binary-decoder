@@ -45,8 +45,8 @@ import BinaryDecoder exposing (..)
 import Dict
 
 
-type alias Context =
-  GenericDecoder.Context Int
+type alias State =
+  GenericDecoder.State Int
 
 
 {-| Sperial decoder type for bits.
@@ -95,13 +95,13 @@ int length =
   if length < 0 then
     fail ("invalid length " ++ toString length)
   else
-    GenericDecoder (\context ->
-      case intHelp context.position length context.source of
+    GenericDecoder (\state ->
+      case intHelp state.position length state.source of
         Ok i ->
-          Ok ({ context | position = context.position + length }, i)
+          Ok ({ state | position = state.position + length }, i)
 
         Err s ->
-          Err (Error context.position s)
+          Err (Error state.position state.context s)
     )
 
 

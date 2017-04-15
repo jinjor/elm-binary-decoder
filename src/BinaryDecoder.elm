@@ -31,14 +31,14 @@ import BinaryDecoder.GenericDecoder as GenericDecoder exposing (..)
 -}
 succeed : a -> GenericDecoder s a
 succeed a =
-  GenericDecoder (\context -> Ok (context, a))
+  GenericDecoder (\state -> Ok (state, a))
 
 
 {-| Create a decoder that always failes with given error message.
 -}
 fail : String -> GenericDecoder s a
 fail s =
-  GenericDecoder (\context -> Err (Error context.position s))
+  GenericDecoder (\state -> Err (Error state.position state.context s))
 
 
 
@@ -73,14 +73,14 @@ infixl 5 |.
 -}
 andThen : (a -> GenericDecoder s b) -> GenericDecoder s a -> GenericDecoder s b
 andThen f (GenericDecoder f_) =
-  GenericDecoder (\context ->
-    f_ context
-      |> Result.andThen (\(context_, a) ->
+  GenericDecoder (\state ->
+    f_ state
+      |> Result.andThen (\(state_, a) ->
         let
           (GenericDecoder decode) =
             f a
         in
-          decode context_
+          decode state_
       )
     )
 
@@ -89,10 +89,10 @@ andThen f (GenericDecoder f_) =
 -}
 map : (a -> b) -> GenericDecoder s a -> GenericDecoder s b
 map f (GenericDecoder f_) =
-  GenericDecoder (\context ->
-    f_ context
-      |> Result.map (\(context, a) ->
-        (context, f a)
+  GenericDecoder (\state ->
+    f_ state
+      |> Result.map (\(state, a) ->
+        (state, f a)
       )
     )
 
@@ -126,20 +126,20 @@ repeat n decoder =
 many : GenericDecoder s a -> GenericDecoder s (List a)
 many (GenericDecoder decode) =
   GenericDecoder
-    (\context ->
-      manyHelp decode context
+    (\state ->
+      manyHelp decode state
     )
 
 
-manyHelp : (Context s -> Result Error (Context s, a)) -> Context s -> Result Error (Context s, List a)
-manyHelp decode context =
-  case decode context of
-    Ok (newContext, head) ->
-      manyHelp decode newContext
+manyHelp : (State s -> Result Error (State s, a)) -> State s -> Result Error (State s, List a)
+manyHelp decode state =
+  case decode state of
+    Ok (newState, head) ->
+      manyHelp decode newState
         |> Result.map (Tuple.mapSecond ((::) head))
 
     Err e ->
-      Ok (context, [])
+      Ok (state, [])
 
 
 
@@ -150,8 +150,8 @@ manyHelp decode context =
 -}
 position : GenericDecoder s Int
 position =
-  GenericDecoder (\context ->
-    Ok (context, context.position)
+  GenericDecoder (\state ->
+    Ok (state, state.position)
   )
 
 
@@ -160,9 +160,9 @@ position =
 from : Int -> GenericDecoder s a -> GenericDecoder s a
 from position (GenericDecoder decode) =
   GenericDecoder
-    (\context ->
-      decode { context | position = position }
-        |> Result.map (\(c, a) -> ({ c | position = context.position }, a))
+    (\state ->
+      decode { state | position = position }
+        |> Result.map (\(c, a) -> ({ c | position = state.position }, a))
     )
 
 
@@ -171,8 +171,8 @@ from position (GenericDecoder decode) =
 goTo : Int -> GenericDecoder s ()
 goTo position =
   GenericDecoder
-    (\context ->
-      Ok ({ context | position = position }, ())
+    (\state ->
+      Ok ({ state | position = position }, ())
     )
 
 
@@ -181,8 +181,19 @@ goTo position =
 skip : Int -> GenericDecoder s ()
 skip size =
   GenericDecoder
-    (\context ->
-      Ok ({ context | position = context.position + size }, ())
+    (\state ->
+      Ok ({ state | position = state.position + size }, ())
+    )
+
+
+{-| Give context for making nicer error message.
+-}
+inContext : String -> GenericDecoder s () -> GenericDecoder s ()
+inContext label (GenericDecoder decode) =
+  GenericDecoder
+    (\state ->
+      decode { state | context = (state.position, label) :: state.context }
+        |> Result.map (\(c, a) -> ({ c | context = state.context }, a))
     )
 
 
@@ -194,12 +205,12 @@ skip size =
 -}
 lazy : (() -> GenericDecoder s a) -> GenericDecoder s a
 lazy thunk =
-  GenericDecoder (\context ->
+  GenericDecoder (\state ->
     let
       (GenericDecoder decode) =
         thunk ()
     in
-      decode context
+      decode state
   )
 
 

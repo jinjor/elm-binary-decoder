@@ -49,8 +49,8 @@ type DataView =
   DataView
 
 
-type alias Context =
-  GenericDecoder.Context DataView
+type alias State =
+  GenericDecoder.State DataView
 
 
 {-| Decoder type. Type variable `a` is the result type.
@@ -90,10 +90,10 @@ type DecodeIntOption =
   DecodeIntOption
 
 
-nativeDecodeInt : DecodeIntOption -> (Context -> Result Error (Context, Int))
-nativeDecodeInt option = \context ->
-  case Native.BinaryDecoder.decodeInt option context of
-    Err s -> Err (Error context.position s)
+nativeDecodeInt : DecodeIntOption -> (State -> Result Error (State, Int))
+nativeDecodeInt option = \state ->
+  case Native.BinaryDecoder.decodeInt option state of
+    Err s -> Err (Error state.position state.context s)
     Ok i -> Ok i
 
 
