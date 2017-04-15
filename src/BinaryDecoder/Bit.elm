@@ -6,7 +6,33 @@ module BinaryDecoder.Bit exposing
   )
 
 
-{-|
+{-| Sperial decoder for bits. You can use two decoders (`Decoder` and `BitDecoder`) together.
+
+```elm
+import BinaryDecoder exposing (..)
+import BinaryDecoder.Byte exposing (..)
+import BinaryDecoder.Bits exposing (BitDecoder)
+
+
+tagId3v2Header : Decoder TagId3v2Header
+tagId3v2Header =
+  succeed TagId3v2Header
+    |. symbol "ID3"
+    |= uint8
+    |= uint8
+    |= bits 1 tagId3v2HeaderFlags -- convert BitDecoder to Decoder
+    |= syncSafeInt
+
+
+tagId3v2HeaderFlags : BitDecoder TagId3v2HeaderFlags
+tagId3v2HeaderFlags =
+  succeed TagId3v2HeaderFlags
+    |= Bit.bool
+    |= Bit.bool
+    |= Bit.bool
+    |= Bit.bool
+```
+
 @docs BitDecoder
 @docs decode
 @docs int, bool
@@ -24,7 +50,6 @@ type alias Context =
 
 
 {-| Sperial decoder type for bits.
-
 -}
 type alias BitDecoder a
   = GenericDecoder Int a

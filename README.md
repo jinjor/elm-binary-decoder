@@ -48,23 +48,23 @@ You can use two decoders together.
 This is an example from Mp3Decoder.
 
 ```elm
-tagId3v2FrameHeaderFlags : Decoder TagId3v2FrameHeaderFlags
-tagId3v2FrameHeaderFlags =
-  -- This is (Byte) Decoder
-  bits 2 <|
-    -- and this is BitDecoder.
-    succeed TagId3v2FrameHeaderFlags
-      |. goTo 1
-      |= Bit.bool
-      |= Bit.bool
-      |= Bit.bool
-      |. goTo 9
-      |= Bit.bool
-      |. goTo 12
-      |= Bit.bool
-      |= Bit.bool
-      |= Bit.bool
-      |= Bit.bool
+tagId3v2Header : Decoder TagId3v2Header
+tagId3v2Header =
+  succeed TagId3v2Header
+    |. symbol "ID3"
+    |= uint8
+    |= uint8
+    |= bits 1 tagId3v2HeaderFlags -- convert BitDecoder to Decoder
+    |= syncSafeInt
+
+
+tagId3v2HeaderFlags : BitDecoder TagId3v2HeaderFlags
+tagId3v2HeaderFlags =
+  succeed TagId3v2HeaderFlags
+    |= Bit.bool
+    |= Bit.bool
+    |= Bit.bool
+    |= Bit.bool
 ```
 
 While "Byte" decoder decodes the whole binary data, "Bit" decoder only decodes an Int value.
@@ -72,7 +72,7 @@ While "Byte" decoder decodes the whole binary data, "Bit" decoder only decodes a
 
 ## What's special about this library?
 
-Binary format offen give you the size of data before you read it.
+Binary format often give you the size of data before you read it.
 So, there are many useful functions for using these meta information.
 
 * Jump to certain position and read from there

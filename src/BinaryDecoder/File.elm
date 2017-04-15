@@ -5,7 +5,25 @@ module BinaryDecoder.File exposing
   )
 
 
-{-|-}
+{-| Use this module to get ArrayBuffer.
+
+```
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+  case msg of
+    GotFile file ->
+      ( model
+      , Task.attempt ReadBuffer (File.readFileAsArrayBuffer file)
+      )
+
+    ReadBuffer (Ok arrayBuffer) ->
+      ...
+
+    ReadBuffer (Err error) ->
+      ...
+```
+
+-}
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -95,14 +113,3 @@ readFileAsArrayBuffer =
 fetchArrayBuffer : String -> Task String ArrayBuffer
 fetchArrayBuffer =
   Native.BinaryDecoder.fetchArrayBuffer
-
-
--- {-|-}
--- type Progress
---   = None
---   | Some { bytes : Int, bytesExpected : Int }
---   | Fail Error
---   | Done ArrayBuffer
---
--- {-|-}
--- track : String -> (Progress -> msg) -> File -> Sub msg

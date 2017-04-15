@@ -21,19 +21,10 @@ function getAt(index, fileList) {
 
 function readFileAsArrayBuffer(file) {
   var reader = new FileReader();
-  return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-  {
+  return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback){
     reader.addEventListener('load', function() {
       callback(_elm_lang$core$Native_Scheduler.succeed(reader.result));
     });
-    // reader.addEventListener('progress', function(e) {
-    //   if(e.lengthComputable) {
-    //     _elm_lang$core$Native_Scheduler.rawSpawn({
-    //       bytes: e.loaded,
-    //       bytesExpected: e.total
-    //     });
-    //   }
-    // });
     reader.addEventListener('error', function() {
       callback(_elm_lang$core$Native_Scheduler.fail(
         _jinjor$binary_decoder$Native_BinaryDecoder$Error

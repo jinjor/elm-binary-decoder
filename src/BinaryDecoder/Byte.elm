@@ -6,7 +6,23 @@ module BinaryDecoder.Byte exposing
   )
 
 
-{-|
+{-| This module defines basic byte decoders.
+You also need to import BinaryDecoder to use useful combinators.
+
+```
+import BinaryDecoder exposing (..)
+import BinaryDecoder.Byte exposing (..)
+
+wave : Decoder Wave
+wave =
+  succeed Wave
+    |. symbol "RIFF"
+    |= uint32BE
+    |. symbol "WAVE"
+    |= formatChunk
+    |= dataChunk
+```
+
 @docs ArrayBuffer, Decoder, Error, decode
 @docs uint8, uint16BE, uint16LE, uint32BE, uint32LE
 @docs int8, int16BE, int16LE, int32BE, int32LE

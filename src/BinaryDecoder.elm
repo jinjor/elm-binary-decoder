@@ -8,7 +8,7 @@ module BinaryDecoder exposing
   )
 
 
-{-|
+{-| This module provides useful combinators that works just like [elm-tools/parser](http://package.elm-lang.org/packages/elm-tools/parser/latest).
 
 @docs succeed,fail
 @docs (|=), (|.)
@@ -45,7 +45,8 @@ fail s =
 -- COMBINATOR
 
 
-{-|-}
+{-| Keep a value in a decoder pipeline.
+-}
 (|=) : GenericDecoder s (a -> b) -> GenericDecoder s a -> GenericDecoder s b
 (|=) transformer decoder =
   transformer
@@ -54,7 +55,8 @@ fail s =
     )
 
 
-{-|-}
+{-| Ignore a value in a decoder pipeline.
+-}
 (|.) : GenericDecoder s a -> GenericDecoder s x -> GenericDecoder s a
 (|.) decoder ignored =
   decoder
@@ -67,7 +69,8 @@ infixl 5 |=
 infixl 5 |.
 
 
-{-|-}
+{-| Run a decoder and then run another decoder.
+-}
 andThen : (a -> GenericDecoder s b) -> GenericDecoder s a -> GenericDecoder s b
 andThen f (GenericDecoder f_) =
   GenericDecoder (\context ->
@@ -82,7 +85,8 @@ andThen f (GenericDecoder f_) =
     )
 
 
-{-|-}
+{-| Transform the result of a decoder.
+-}
 map : (a -> b) -> GenericDecoder s a -> GenericDecoder s b
 map f (GenericDecoder f_) =
   GenericDecoder (\context ->
@@ -93,7 +97,8 @@ map f (GenericDecoder f_) =
     )
 
 
-{-|-}
+{-| Apply list of decoders that all returns the same type.
+-}
 sequence : List (GenericDecoder s a) -> GenericDecoder s (List a)
 sequence decoders =
   case decoders of
@@ -107,14 +112,17 @@ sequence decoders =
             |> map (\tail -> head :: tail)
         )
 
-{-|-}
+
+{-| Apply decoder just n times and return list.
+-}
 repeat : Int -> GenericDecoder s a -> GenericDecoder s (List a)
 repeat n decoder =
   sequence (List.repeat n decoder)
 
 
 
-{-|-}
+{-| Apply decoder many times until it fails.
+-}
 many : GenericDecoder s a -> GenericDecoder s (List a)
 many (GenericDecoder decode) =
   GenericDecoder
@@ -133,27 +141,6 @@ manyHelp decode context =
     Err e ->
       Ok (context, [])
 
-
--- oneOf : List (GenericDecoder s a) -> GenericDecoder s a
--- oneOf decoders =
---   GenericDecoder (\context ->
---     oneOfHelp context decoders
---   )
---
---
--- oneOfHelp : Context s -> List (GenericDecoder s a) -> Result Error (Context s, a)
--- oneOfHelp context decoders =
---   case decoders of
---     [] ->
---       Err (Error context.position "none of decoders succeeds")
---
---     (GenericDecoder decode) :: tail ->
---       case decode context of
---         Err _ ->
---           oneOfHelp context tail
---
---         ok ->
---           ok
 
 
 -- POSITION
@@ -203,7 +190,8 @@ skip size =
 -- LAZY
 
 
-{-|-}
+{-| This is needed to write recursive decoder.
+-}
 lazy : (() -> GenericDecoder s a) -> GenericDecoder s a
 lazy thunk =
   GenericDecoder (\context ->
@@ -231,7 +219,9 @@ equal expected decoder =
           fail ("expected " ++ toString expected ++ ", but got " ++ toString a)
       )
 
-{-|-}
+
+{-| Succeeds if the decoded value martches given condition.
+-}
 match : (a -> Bool) -> GenericDecoder s a -> GenericDecoder s ()
 match isOk decoder =
   decoder
@@ -242,7 +232,9 @@ match isOk decoder =
           fail (toString a ++ " is not expected here")
       )
 
-{-|-}
+
+{-| Make simple error message. (More helpful message should be made in the future.)
+-}
 printError : Error -> String
 printError err =
   "decode failed at " ++ toString err.position ++ ":\n\n\t" ++ err.message ++ "\n"
